@@ -11,7 +11,7 @@ using LinqToExcel;
 
 namespace WM_Fuzzy
 {
-    public partial class Form1 : Form
+    public partial class ElectricityForecast : Form
     {
         int trainPercentage = 70;
 
@@ -19,15 +19,10 @@ namespace WM_Fuzzy
         List<Feature> features = new List<Feature>();
         string forecastColumnName = "Forecast_Total_kWh";
 
-        public Form1()
+        public ElectricityForecast()
         {
             InitializeComponent();
-
-
-            //Forecast();
-
         }
-
         private void Forecast()
         {
             energyColumns = new List<EnergyColumn>();
@@ -35,7 +30,7 @@ namespace WM_Fuzzy
             // 對應Excel的欄位名，把目標欄位放最後一個
             //energyConsumption.Add(new EnergyConsumption("Date", 3));
             //energyConsumption.Add(new EnergyConsumption("Insolation", 3));
-            //energyConsumption.Add(new EnergyConsumption("Humidity", 3));
+            //energyColumns.Add(new EnergyColumn("Humidity", "濕度", int.Parse(txt_HumidityCount.Text)));
             //energyConsumption.Add(new EnergyConsumption("Wind_Direction", 3));
             //energyConsumption.Add(new EnergyConsumption("Wind_Velocity", 3));
             //energyConsumption.Add(new EnergyConsumption("Air_kWh", 3));
@@ -133,10 +128,25 @@ namespace WM_Fuzzy
 
             dataGridView1.DataSource = ruleBase.Select(item => new
             {
-                RuleBase = item.Value.XRule.ToString() + item.Value.YRule.ToString(),
+                //RuleBase = item.Value.XRule.ToString() + item.Value.YRule.ToString(),
+                x1 = item.Value.XRule.Substring(0, 1),
+                x2 = item.Value.XRule.Substring(1, 1),
+                x3 = item.Value.XRule.Substring(2, 1),
+                y = item.Value.YRule.ToString()
                 //itemX = item.Value.XRule,
                 //Value = DegreeLevel(item.Value.RuleFeature)
             }).ToList();
+            dataGridView1.Columns[0].HeaderText = "溫度";
+            dataGridView1.Columns[0].Width = 70;
+            dataGridView1.Columns[1].HeaderText = "舒適度";
+            dataGridView1.Columns[1].Width = 75;
+            dataGridView1.Columns[2].HeaderText = "空調用電";
+            dataGridView1.Columns[2].Width = 90;
+            dataGridView1.Columns[3].HeaderText = "總用電";
+            dataGridView1.Columns[3].Width = 75;
+            dataGridView1.DefaultCellStyle.Font = new System.Drawing.Font("微軟正黑體", 10);
+            dataGridView1.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("微軟正黑體", 10);
+
 
             #region filter x rule相同的by相似度
             var groupXRule = ruleBase.GroupBy(item => item.Value.XRule).Select(item => new
@@ -226,6 +236,19 @@ namespace WM_Fuzzy
             }
 
             dataGridView2.DataSource = resultData;
+            dataGridView2.DefaultCellStyle.Font = new System.Drawing.Font("微軟正黑體", 10);
+            dataGridView2.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("微軟正黑體", 10);
+            dataGridView2.Columns[0].HeaderText = "溫度";
+            dataGridView2.Columns[0].Width = 70;
+            dataGridView2.Columns[1].HeaderText = "舒適度";
+            dataGridView2.Columns[1].Width = 75;
+            dataGridView2.Columns[2].HeaderText = "空調用電";
+            dataGridView2.Columns[2].Width = 90;
+            dataGridView2.Columns[3].HeaderText = "總用電";
+            dataGridView2.Columns[3].Width = 75;
+            dataGridView2.Columns[4].HeaderText = "預測總用電";
+            dataGridView2.Columns[4].Width = 105;
+
             chart1.DataSource = resultData;
             chart1.DataBind();
             #endregion
@@ -371,8 +394,114 @@ namespace WM_Fuzzy
 
         private void btn_Forecast_Click(object sender, EventArgs e)
         {
-            Forecast();
+            int tryInt = -1;
+            if (!int.TryParse(txt_TempCount.Text, out tryInt))
+            {
+                MessageBox.Show("溫度 member function region 請輸入數字！");
+            }
+            else if (tryInt < 3)
+            {
+                MessageBox.Show("溫度 member function region 不能低於3個！");
+            }
+            else if (!int.TryParse(txt_ComCount.Text, out tryInt))
+            {
+                MessageBox.Show("舒適度 member function region 請輸入數字！");
+            }
+            else if (tryInt < 3)
+            {
+                MessageBox.Show("舒適度 member function region 不能低於3個！");
+            }
+            else if (!int.TryParse(txt_AirCount.Text, out tryInt))
+            {
+                MessageBox.Show("空調用電 member function region 請輸入數字！");
+            }
+            else if (tryInt < 3)
+            {
+                MessageBox.Show("空調用電 member function region 不能低於3個！");
+            }
+            else if (!int.TryParse(txt_TotalCount.Text, out tryInt))
+            {
+                MessageBox.Show("總用電 member function region 請輸入數字！");
+            }
+            else if (tryInt < 3)
+            {
+                MessageBox.Show("總用電 member function region 不能低於3個！");
+            }
+            else
+            {
+                Forecast();
+            }
         }
 
+        private void btn_betterSet_Click(object sender, EventArgs e)
+        {
+            txt_TempCount.Text = "10";
+            txt_ComCount.Text = "5";
+            txt_AirCount.Text = "15";
+            txt_TotalCount.Text = "25";
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            txt_TempCount.Text = "3";
+            txt_ComCount.Text = "3";
+            txt_AirCount.Text = "3";
+            txt_TotalCount.Text = "3";
+        }
+
+
     }
+
+    public static class EnumerableExtender
+    {
+        public static IEnumerable<T> Distinct<T, TKey>(this IEnumerable<T> source, Func<T, TKey> selector)
+        {
+            return source.GroupBy(selector).Select(item => item.First());
+        }
+        //public static IEnumerable<T> DistinctMFValue<T, TKey>(this IEnumerable<T> source, Func<T,TKey > selector)
+        //{
+        //    return source.GroupBy( ).Select(item => item.First());
+        //}
+
+        //   public static IEnumerable<TSource> DistinctBy<TSource, TKey>
+        //(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        //   {
+        //       HashSet<TKey> knownKeys = new HashSet<TKey>();
+        //       foreach (TSource element in source)
+        //       {
+        //           if (knownKeys.Add(keySelector(element)))
+        //           {
+        //               yield return element;
+        //           }
+        //       }
+        //   }
+
+
+
+        //private sealed class Impl<T> : IEqualityComparer<T, T>
+        //{
+        //    private Func<T, T, bool> m_del;
+        //    private IEqualityComparer<T> m_comp;
+        //    public Impl(Func<T, T, bool> del)
+        //    {
+        //        m_del = del;
+        //        m_comp = EqualityComparer<T>.Default;
+        //    }
+        //    public bool Equals(T left, T right)
+        //    {
+        //        return m_del(left, right);
+        //    }
+        //    public int GetHashCode(T value)
+        //    {
+        //        return m_comp.GetHashCode(value);
+        //    }
+        //}
+        //public static IEqualityComparer<T, T> Create<T>(Func<T, T, bool> del)
+        //{
+        //    return new Impl<T>(del);
+        //}
+    }
+
+
+
 }

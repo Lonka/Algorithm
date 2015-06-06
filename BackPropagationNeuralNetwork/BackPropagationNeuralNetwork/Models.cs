@@ -44,10 +44,16 @@ namespace BackPropagationNeuralNetwork
 
     public class NeuralWeight
     {
+        public NeuralWeight()
+        {
+            PreviousCorrectionValue = 0;
+        }
         public double Weight { get; set; }
         public string Name { get; set; }
 
         public double SourceOutputValue { get; set; }
+
+        public double PreviousCorrectionValue { get; set; }
     }
 
     public class Neural

@@ -80,9 +80,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Content Include="EnergyComsumptionData.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="EnergyComsumptionData.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

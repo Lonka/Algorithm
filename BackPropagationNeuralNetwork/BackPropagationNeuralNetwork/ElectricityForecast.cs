@@ -23,8 +23,9 @@ namespace BackPropagationNeuralNetwork
         int m_heddenLayerSize = 1;
         int m_heddenNeuralSize = 5;
         int m_outputNeuralSize = 1;
-        double m_learningRate = 0.2;
-
+        double m_learningRate = 0.7;
+        double m_momentumFactor = 0.5;
+        int m_trainLoopCount = 3;
         public ElectricityForecast()
         {
             InitializeComponent();
@@ -45,44 +46,114 @@ namespace BackPropagationNeuralNetwork
             energyColumns.Add(new EnergyColumn("Target", "預測電力", DataType.Continuous));
 
             //Load File
+            //For All Data
             var excelSheet = LoadData();
 
-            //正規化
-            DataTable data = Normalization(excelSheet);
+            //For Filter Data
+            var FilterData =excelSheet.Where(item => (item["Season"].ToString().Equals("Summer")) );
+            
+            //For All Data
+            //FindRange(excelSheet);
 
-            //Initial Weight
-            InitialWeight(data);
+            //For Filter Data
+            FindRange(FilterData);
 
             #region 設定training及testing data
-            int totalCount = data.Rows.Count;
+            //For All Data
+            //int totalCount = excelSheet.Count();
+
+            //For Filter Data
+            int totalCount = FilterData.Count();
             int trainCount = totalCount * m_trainPercentage / 100;
             int testCount = totalCount - trainCount;
-            var trainData = data.AsEnumerable().Take(trainCount).CopyToDataTable();
-            var testingData = data.AsEnumerable().Skip(trainCount).CopyToDataTable();
+            //For All Data
+            //var trainExcelData = excelSheet.Take(trainCount);
+            //var testingExcelData = excelSheet.Skip(trainCount);
+
+            //For Filter Data
+            var trainExcelData = FilterData.Take(trainCount);
+            var testingExcelData = FilterData.Skip(trainCount);
             #endregion
+
+            //正規化
+            DataTable trainData = Normalization(trainExcelData);
+            DataTable testingData = Normalization(testingExcelData);
+
+            //Initial Weight
+            InitialWeight(trainData.Clone());
 
             #region training
 
             TrainingModel(trainData);
 
+            #endregion
 
+            #region testing
+
+            DataTable forecastData = Testing(testingExcelData, testingData);
+            dataGridView1.DataSource = forecastData;
 
             #endregion
         }
+
+
+        private DataTable Testing(IQueryable<Row> testingExcelData, DataTable testingData)
+        {
+            int rowIndex = 0;
+            //每筆輸入值
+            DataTable forecastData = new DataTable();
+            foreach (EnergyColumn eng in energyColumns)
+            {
+                forecastData.Columns.Add(eng.Name);
+                if (eng.Name.IndexOf("Target") > -1)
+                {
+                    forecastData.Columns.Add(eng.Name + "_Forecast");
+                }
+            }
+            foreach (var row in testingExcelData)
+            {
+                DataRow dr = forecastData.NewRow();
+                foreach (EnergyColumn eng in energyColumns)
+                {
+                    dr[eng.Name] = row[eng.Name];
+                    if (eng.Name.IndexOf("Target") > -1)
+                    {
+                        //TODO 沒處理類別的輸出值及多個連續值
+                        dr[eng.Name] = row[eng.Name];
+                        Dictionary<string, double> outputValue = ForwardPropagation(testingData, rowIndex);
+                        dr[eng.Name + "_Forecast"] = outputValue["Neural" + m_heddenLayerSize + "_" + eng.Name] * eng.MaxValue;
+                        continue;
+                    }
+                }
+                forecastData.Rows.Add(dr);
+
+                rowIndex++;
+            }
+            return forecastData;
+        }
+
+
         //暫存每個thread的輸出值
         static Dictionary<string, double> ms_tempOutputValues = null;
         //看thread結束狀態
-        static Dictionary<string, bool> ms_stopFlog = null;
+        volatile static string ms_stopFlog = string.Empty;
+        volatile static object stopLock = new object();
+        static string ms_threadCount = string.Empty;
         private void TrainingModel(DataTable sourceData)
         {
-            //每筆輸入值
-            for (int rowIndex = 0; rowIndex < sourceData.Rows.Count; rowIndex++)
+            int i = 0;
+            while (i < m_trainLoopCount)
             {
-                Dictionary<string, double> outputValue = ForwardPropagation(sourceData, rowIndex);
-                double effectValue = CalculateEffect(outputValue, sourceData.Rows[rowIndex]);
-                //門檻 break
+                //每筆輸入值
+                for (int rowIndex = 0; rowIndex < sourceData.Rows.Count; rowIndex++)
+                {
+                    Dictionary<string, double> outputValue = ForwardPropagation(sourceData, rowIndex);
+                    double effectValue = CalculateEffect(outputValue, sourceData.Rows[rowIndex]);
+                    //門檻 break
 
-                BackPropagation(sourceData.Rows[rowIndex]);
+                    BackPropagation(sourceData.Rows[rowIndex]);
+                }
+                i++;
             }
         }
 
@@ -139,7 +210,9 @@ namespace BackPropagationNeuralNetwork
                     //修正所有權重
                     foreach (NeuralWeight nWeight in neural.Weights)
                     {
-                        nWeight.Weight += (m_learningRate * neural.GapValue * nWeight.SourceOutputValue);
+                        double correctionValue = (m_learningRate * neural.GapValue * nWeight.SourceOutputValue) + (m_momentumFactor * nWeight.PreviousCorrectionValue);
+                        nWeight.Weight += correctionValue;
+                        nWeight.PreviousCorrectionValue = correctionValue;
                     }
                 }
             }
@@ -154,15 +227,15 @@ namespace BackPropagationNeuralNetwork
             //輸出格式應為
             //{[Hedden00:0.21],[Hedden01:0.245]...}
             ms_tempOutputValues = new Dictionary<string, double>();
-            ms_stopFlog = new Dictionary<string, bool>();
+            ms_stopFlog = "".PadLeft(m_heddenNeuralSize, '0'); ;
             for (int heddenNeuralIndex = 0; heddenNeuralIndex < m_heddenNeuralSize; heddenNeuralIndex++)
             {
                 //每個hedden都自己開thread做
                 string heddenName = "Neural0_" + heddenNeuralIndex;
-                ms_stopFlog.Add(heddenName, false);
                 ms_tempOutputValues.Add(heddenName, 0);
-                StartInputThread(sourceData.Rows[rowIndex], heddenName);
+                StartInputThread(heddenNeuralIndex, sourceData.Rows[rowIndex], heddenName);
             }
+            ms_threadCount = "".PadLeft(m_heddenNeuralSize, '1');
             //等所有的hedden thread跑完
             Dictionary<string, double> inputValue = WaitAndGenData();
 
@@ -172,7 +245,7 @@ namespace BackPropagationNeuralNetwork
             #region 隱藏層(目前用不到)
             if (m_heddenLayerSize > 1)
             {
-                ms_stopFlog = new Dictionary<string, bool>();
+                ms_stopFlog = "".PadLeft(m_heddenNeuralSize, '0'); ;
                 ms_tempOutputValues = new Dictionary<string, double>();
                 for (int heddenLayerIndex = 1; heddenLayerIndex < m_heddenLayerSize; heddenLayerIndex++)
                 {
@@ -181,10 +254,10 @@ namespace BackPropagationNeuralNetwork
 
                         //每個hedden都自己開thread做
                         string heddenName = "Neural" + heddenLayerIndex + "_" + heddenNeuralIndex;
-                        ms_stopFlog.Add(heddenName, false);
                         ms_tempOutputValues.Add(heddenName, 0);
-                        StartHeddenThread(inputValue, heddenName);
+                        StartHeddenThread(heddenNeuralIndex, inputValue, heddenName);
                     }
+                    ms_threadCount = "".PadLeft(m_heddenNeuralSize, '1');
                     //等所有的hedden thread跑完
                     inputValue = WaitAndGenData();
                 }
@@ -192,17 +265,17 @@ namespace BackPropagationNeuralNetwork
             #endregion
 
             #region 輸出層
-            ms_stopFlog = new Dictionary<string, bool>();
             ms_tempOutputValues = new Dictionary<string, double>();
             var targetCol = sourceData.Columns.Cast<DataColumn>().Where(item => item.ColumnName.IndexOf("Target") > -1).ToList();
+            ms_stopFlog = "".PadLeft(targetCol.Count, '0'); ;
             for (int outputIndex = 0; outputIndex < targetCol.Count; outputIndex++)
             {
                 //每個hedden都自己開thread做
                 string OutputName = "Neural" + m_heddenLayerSize + "_" + targetCol[outputIndex].ColumnName;
-                ms_stopFlog.Add(OutputName, false);
                 ms_tempOutputValues.Add(OutputName, 0);
-                StartHeddenThread(inputValue, OutputName);
+                StartHeddenThread(outputIndex, inputValue, OutputName);
             }
+            ms_threadCount = "".PadLeft(targetCol.Count, '1');
             //等所有的hedden thread跑完
             inputValue = WaitAndGenData();
 
@@ -213,21 +286,23 @@ namespace BackPropagationNeuralNetwork
         }
 
         //開input層到隱藏層的thead
-        private static void StartInputThread(DataRow dr, string heddenName)
+        private static void StartInputThread(int threadId, DataRow dr, string heddenName)
         {
             Input2HeddenThreadClass input2HeddenThreadClass = new Input2HeddenThreadClass();
             input2HeddenThreadClass.ThreadName = heddenName;
             input2HeddenThreadClass.InputData = dr;
+            input2HeddenThreadClass.ThreadID = threadId;
             Thread heddenThread = new Thread(input2HeddenThreadClass.InputCombineAndSigmoid);
             heddenThread.Start();
         }
 
         //開隱藏層之後的thread
-        private static void StartHeddenThread(Dictionary<string, double> inputValue, string heddenName)
+        private static void StartHeddenThread(int threadId, Dictionary<string, double> inputValue, string heddenName)
         {
             Hedden2OutputThreadClass hedden2OutputThreadClass = new Hedden2OutputThreadClass();
             hedden2OutputThreadClass.ThreadName = heddenName;
             hedden2OutputThreadClass.InputData = inputValue;
+            hedden2OutputThreadClass.ThreadID = threadId;
             Thread heddenThread = new Thread(hedden2OutputThreadClass.CalculateOutputValue);
             heddenThread.Start();
         }
@@ -235,18 +310,12 @@ namespace BackPropagationNeuralNetwork
         //等所有的thread結束
         private static Dictionary<string, double> WaitAndGenData()
         {
-            //TODO解決執行緒改變內容的問題
-            int i = 0;
-            //一個一個過
-            while (i < ms_stopFlog.Count)
+            bool exit = false;
+            while (!exit)
             {
-                i = 0;
-                foreach (KeyValuePair<string, bool> item in ms_stopFlog)
+                if (ms_stopFlog == ms_threadCount)
                 {
-                    if (!item.Value)
-                        break;
-                    i++;
-
+                    exit = true;
                 }
             }
 
@@ -263,7 +332,7 @@ namespace BackPropagationNeuralNetwork
         {
             public string ThreadName { get; set; }
             public DataRow InputData { get; set; }
-
+            public int ThreadID { get; set; }
             public void InputCombineAndSigmoid()
             {
                 Neural neural = ms_neural.Where(item => item.Name.Equals(ThreadName)).FirstOrDefault();
@@ -285,7 +354,11 @@ namespace BackPropagationNeuralNetwork
                 double result = 1 / (1 + Math.Exp(-sum));
                 neural.OutputValue = result;
                 ms_tempOutputValues[ThreadName] = result;
-                ms_stopFlog[ThreadName] = true;
+                lock (stopLock)
+                {
+                    ms_stopFlog = ms_stopFlog.Remove(ThreadID, 1);
+                    ms_stopFlog = ms_stopFlog.Insert(ThreadID, "1");
+                }
             }
         }
 
@@ -294,7 +367,7 @@ namespace BackPropagationNeuralNetwork
         {
             public string ThreadName { get; set; }
             public Dictionary<string, double> InputData { get; set; }
-
+            public int ThreadID { get; set; }
             public void CalculateOutputValue()
             {
                 Neural neural = ms_neural.Where(item => item.Name.Equals(ThreadName)).FirstOrDefault();
@@ -316,7 +389,11 @@ namespace BackPropagationNeuralNetwork
                 double result = 1 / (1 + Math.Exp(-sum));
                 neural.OutputValue = result;
                 ms_tempOutputValues[ThreadName] = result;
-                ms_stopFlog[ThreadName] = true;
+                lock (stopLock)
+                {
+                    ms_stopFlog = ms_stopFlog.Remove(ThreadID, 1);
+                    ms_stopFlog = ms_stopFlog.Insert(ThreadID, "1");
+                }
             }
         }
 
@@ -339,9 +416,11 @@ namespace BackPropagationNeuralNetwork
                         continue;
                     }
                     Random r = new Random(Guid.NewGuid().GetHashCode());
+                    double weight = r.Next(100, 999) / 1000.0;
                     nWeights.Add(new NeuralWeight()
                     {
-                        Weight = (j == 0 ? 1 - r.NextDouble() : r.NextDouble()),
+                        //Weight = (j == 0 ? 1 - weight : weight),
+                        Weight = weight,
                         Name = (j == 0 ? "W_0" : "W_" + data.Columns[j - 1].ColumnName)
                     });
                 }
@@ -357,9 +436,11 @@ namespace BackPropagationNeuralNetwork
                     for (int j = 0; j <= m_heddenNeuralSize; j++)
                     {
                         Random r = new Random(Guid.NewGuid().GetHashCode());
+                        double weight = r.Next(100, 999) / 1000.0;
                         nWeights.Add(new NeuralWeight()
                         {
-                            Weight = (j == 0 ? 1 - r.NextDouble() : r.NextDouble()),
+                            //Weight = (j == 0 ? 1 - weight : weight),
+                            Weight = weight,
                             Name = (j == 0 ? "W_0" : "W_Neural" + (s - 1) + "_" + i)
                         });
                     }
@@ -376,9 +457,11 @@ namespace BackPropagationNeuralNetwork
                 for (int j = 0; j <= m_heddenNeuralSize; j++)
                 {
                     Random r = new Random(Guid.NewGuid().GetHashCode());
+                    double weight = r.Next(100, 999) / 1000.0;
                     nWeights.Add(new NeuralWeight()
                     {
-                        Weight = (j == 0 ? 1 - r.NextDouble() : r.NextDouble()),
+                        //Weight = (j == 0 ? 1 - weight : weight),
+                        Weight =  weight ,
                         Name = (j == 0 ? "W_0" : "W_Neural" + (m_heddenLayerSize - 1) + "_" + (j - 1))
                     });
 
@@ -401,12 +484,7 @@ namespace BackPropagationNeuralNetwork
             return excelSheet;
         }
 
-        /// <summary>
-        /// 正規化
-        /// </summary>
-        /// <param name="excelSheet"></param>
-        /// <returns></returns>
-        private DataTable Normalization(LinqToExcel.Query.ExcelQueryable<Row> excelSheet)
+        private void FindRange(LinqToExcel.Query.ExcelQueryable<Row> excelSheet)
         {
             #region 找出最大最小及類別值
             foreach (var row in excelSheet)
@@ -453,6 +531,65 @@ namespace BackPropagationNeuralNetwork
                 energyColumns.Remove(rmEng);
             }
             #endregion
+        }
+
+        private void FindRange(IQueryable<Row> FilterData)
+        {
+            #region 找出最大最小及類別值
+            foreach (var row in FilterData)
+            {
+                foreach (EnergyColumn eng in energyColumns)
+                {
+                    if (eng.DataType == DataType.Continuous)
+                    {
+                        double value = 0;
+                        if (double.TryParse(row[eng.Name], out value))
+                        {
+                            if (value > eng.MaxValue)
+                            {
+                                eng.MaxValue = value;
+                            }
+                            if (value < eng.MinValue)
+                            {
+                                eng.MinValue = value;
+                            }
+                        }
+                    }
+                    else if (eng.DataType == DataType.Category)
+                    {
+                        string categoryStr = row[eng.Name];
+                        if (!eng.CategoryList.Contains(categoryStr))
+                        {
+                            eng.CategoryList.Add(categoryStr);
+                        }
+                    }
+                }
+            }
+
+            //移除沒有類別的欄位
+            List<EnergyColumn> removeEng = new List<EnergyColumn>();
+            foreach (EnergyColumn eng in energyColumns)
+            {
+                if (eng.DataType == DataType.Category && eng.CategoryList.Count == 0)
+                {
+                    removeEng.Add(eng);
+                }
+            }
+            foreach (EnergyColumn rmEng in removeEng)
+            {
+                energyColumns.Remove(rmEng);
+            }
+            #endregion
+        }
+
+
+        /// <summary>
+        /// 正規化
+        /// </summary>
+        /// <param name="excelSheet"></param>
+        /// <returns></returns>
+        private DataTable Normalization(IQueryable<Row> excelSheet)
+        {
 
             #region Initial Table
             DataTable data = new DataTable();

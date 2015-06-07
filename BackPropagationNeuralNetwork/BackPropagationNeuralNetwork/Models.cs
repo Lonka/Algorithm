@@ -12,11 +12,12 @@ namespace BackPropagationNeuralNetwork
     }
     public class EnergyColumn
     {
-        public EnergyColumn(string _name, string _chiName, DataType _dataType)
+        public EnergyColumn(string _name, string _chiName, DataType _dataType,string _weightType)
         {
             ChiName = _chiName;
             Name = _name;
             DataType = _dataType;
+            WeightType = _weightType;
             if (DataType == BackPropagationNeuralNetwork.DataType.Continuous)
             {
                 MaxValue = double.MinValue;
@@ -27,6 +28,7 @@ namespace BackPropagationNeuralNetwork
                 CategoryList = new List<string>();
             }
         }
+        public string WeightType { get; set; }
         public string Name { get; set; }
         public string ChiName { get; set; }
         public DataType DataType { get; set; }

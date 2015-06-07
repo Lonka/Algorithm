@@ -14,7 +14,7 @@ namespace BackPropagationNeuralNetwork
 {
     public partial class ElectricityForecast : Form
     {
-        static List<Neural> ms_neural = new List<Neural>();
+        static List<Neural> ms_neural = null;
         int m_trainPercentage = 70;
         string m_excelFileName = "EnergyComsumptionData.csv";
         string m_excelSheetName = "Energy Comsumption";
@@ -25,7 +25,7 @@ namespace BackPropagationNeuralNetwork
         int m_outputNeuralSize = 1;
         double m_learningRate = 0.7;
         double m_momentumFactor = 0.5;
-        int m_trainLoopCount = 3;
+        int m_trainLoopCount = 1;
         public ElectricityForecast()
         {
             InitializeComponent();
@@ -34,24 +34,72 @@ namespace BackPropagationNeuralNetwork
 
             //double yy = 1 / (1 + xx);
 
+            DataTable cbBindData = new DataTable();
+            cbBindData.Columns.Add("Text");
+            cbBindData.Columns.Add("Value");
+            DataRow dr = cbBindData.NewRow();
+            dr["Text"] = "高相關";
+            dr["Value"] = "high";
+            cbBindData.Rows.Add(dr);
+            dr = cbBindData.NewRow();
+            dr["Text"] = "中相關";
+            dr["Value"] = "mid";
+            cbBindData.Rows.Add(dr);
+            dr = cbBindData.NewRow();
+            dr["Text"] = "低相關";
+            dr["Value"] = "low";
+            cbBindData.Rows.Add(dr);
 
+            cb_Avg_Temperature.DataSource = cbBindData;
+            cb_Avg_Temperature.SelectedValue = "mid";
+
+            cb_Total_Relatively_kWh.DataSource = cbBindData.Copy();
+            cb_Total_Relatively_kWh.SelectedValue = "high";
+
+            cb_Total_kWh.DataSource = cbBindData.Copy();
+            cb_Total_kWh.SelectedValue = "high";
+
+            cb_Avg_Illumination.DataSource = cbBindData.Copy();
+            cb_Avg_Illumination.SelectedValue = "mid";
+
+            cb_Season.DataSource = cbBindData.Copy();
+            cb_Season.SelectedValue = "low";
+
+            cb_Work.DataSource = cbBindData.Copy();
+            cb_Work.SelectedValue = "low";
+
+            cb_Holiday.DataSource = cbBindData.Copy();
+            cb_Holiday.SelectedValue = "low";
+        }
+
+        private void NeuralNetwork()
+        {
+            ms_neural = new List<Neural>();
             energyColumns = new List<EnergyColumn>();
-            energyColumns.Add(new EnergyColumn("Avg_Temperature", "平均溫度", DataType.Continuous));
-            energyColumns.Add(new EnergyColumn("Total_kWh", "即時總用電", DataType.Continuous));
-            energyColumns.Add(new EnergyColumn("Total_Relatively_kWh", "相對總用電", DataType.Continuous));
-            energyColumns.Add(new EnergyColumn("Avg_Illumination", "平均日照量", DataType.Continuous));
-            energyColumns.Add(new EnergyColumn("Season", "季節", DataType.Category));
-            energyColumns.Add(new EnergyColumn("Holiday", "假日", DataType.Category));
-            energyColumns.Add(new EnergyColumn("Work", "工作", DataType.Category));
-            energyColumns.Add(new EnergyColumn("Target", "預測電力", DataType.Continuous));
+            energyColumns.Add(new EnergyColumn("Total_kWh", "即時總用電", DataType.Continuous, cb_Total_kWh.SelectedValue.ToString()));
+            energyColumns.Add(new EnergyColumn("Total_Relatively_kWh", "相對總用電", DataType.Continuous, cb_Total_Relatively_kWh.SelectedValue.ToString()));
+            energyColumns.Add(new EnergyColumn("Avg_Temperature", "平均溫度", DataType.Continuous, cb_Avg_Temperature.SelectedValue.ToString()));
+            //energyColumns.Add(new EnergyColumn("Avg_Illumination", "平均日照量", DataType.Continuous, cb_Avg_Illumination.SelectedValue.ToString()));
+            energyColumns.Add(new EnergyColumn("Season", "季節", DataType.Category, cb_Season.SelectedValue.ToString()));
+            energyColumns.Add(new EnergyColumn("Holiday", "假日", DataType.Category, cb_Holiday.SelectedValue.ToString()));
+            energyColumns.Add(new EnergyColumn("Work", "工作", DataType.Category, cb_Work.SelectedValue.ToString()));
+            energyColumns.Add(new EnergyColumn("Target", "預測電力", DataType.Continuous, string.Empty));
 
             //Load File
             //For All Data
             var excelSheet = LoadData();
 
             //For Filter Data
-            var FilterData =excelSheet.Where(item => (item["Season"].ToString().Equals("Summer")) );
-            
+            var FilterData = excelSheet.Where(item => (
+                item["Season"].ToString().Equals("Summer")
+                || item["Season"].ToString().Equals("Spring")
+                || item["Season"].ToString().Equals("Winter")
+                || item["Season"].ToString().Equals("Fall")
+                )
+
+                //&& item["Work"].ToString().Equals("TRUE")
+                );
+
             //For All Data
             //FindRange(excelSheet);
 
@@ -88,12 +136,36 @@ namespace BackPropagationNeuralNetwork
 
             #endregion
 
+            //TODO del
+            Dictionary<string, double> outputWeightShow = new Dictionary<string, double>();
+            foreach (var xx in ms_neural)
+            {
+                foreach (var x in xx.Weights)
+                {
+                    outputWeightShow.Add(xx.Name + x.Name, x.Weight);
+                }
+            }
+            dataGridView3.DataSource = outputWeightShow.ToList();
+
+
             #region testing
 
             DataTable forecastData = Testing(testingExcelData, testingData);
             dataGridView1.DataSource = forecastData;
-
+            dataGridView1.Columns[0].HeaderText = "即時總用電";
+            dataGridView1.Columns[1].HeaderText = "相對總用電";
+            dataGridView1.Columns[2].HeaderText = "平均溫度";
+            //dataGridView1.Columns[3].HeaderText = "平均日照量";
+            dataGridView1.Columns[3].HeaderText = "季節";
+            dataGridView1.Columns[4].HeaderText = "假日";
+            dataGridView1.Columns[5].HeaderText = "工作";
+            dataGridView1.Columns[6].HeaderText = "目標電力";
+            dataGridView1.Columns[7].HeaderText = "預測電力";
             #endregion
+
+            chart1.DataSource = forecastData;
+            chart1.DataBind();
+
         }
 
 
@@ -216,7 +288,6 @@ namespace BackPropagationNeuralNetwork
                     }
                 }
             }
-
         }
 
         #region Forward Propagation
@@ -405,6 +476,8 @@ namespace BackPropagationNeuralNetwork
         /// <param name="data"></param>
         private void InitialWeight(DataTable data)
         {
+            //TODO 要刪
+            Dictionary<string, double> weightShow = new Dictionary<string, double>();
             //Input -> Hedden的Weight
             for (int i = 0; i < m_heddenNeuralSize; i++)
             {
@@ -415,14 +488,14 @@ namespace BackPropagationNeuralNetwork
                     {
                         continue;
                     }
-                    Random r = new Random(Guid.NewGuid().GetHashCode());
-                    double weight = r.Next(100, 999) / 1000.0;
+                    double weight = GetWeight(data.Columns[(j == 0 ? 0 : j - 1)].ColumnName);
                     nWeights.Add(new NeuralWeight()
                     {
                         //Weight = (j == 0 ? 1 - weight : weight),
                         Weight = weight,
                         Name = (j == 0 ? "W_0" : "W_" + data.Columns[j - 1].ColumnName)
                     });
+                    weightShow.Add((j == 0 ? "Neural0_" + i + "W_0" : "Neural0_" + i + "W_" + data.Columns[j - 1].ColumnName), weight);
                 }
                 ms_neural.Add(new Neural() { Layer = 0, Name = "Neural0_" + i, Weights = nWeights });
             }
@@ -443,6 +516,7 @@ namespace BackPropagationNeuralNetwork
                             Weight = weight,
                             Name = (j == 0 ? "W_0" : "W_Neural" + (s - 1) + "_" + i)
                         });
+                        weightShow.Add((j == 0 ? "Neural" + s + "_" + i+"W_0" : "Neural" + s + "_" + i+"W_Neural" + (s - 1) + "_" + i), weight);
                     }
                     ms_neural.Add(new Neural() { Layer = s, Name = "Neural" + s + "_" + i, Weights = nWeights });
 
@@ -461,14 +535,39 @@ namespace BackPropagationNeuralNetwork
                     nWeights.Add(new NeuralWeight()
                     {
                         //Weight = (j == 0 ? 1 - weight : weight),
-                        Weight =  weight ,
+                        Weight = weight,
                         Name = (j == 0 ? "W_0" : "W_Neural" + (m_heddenLayerSize - 1) + "_" + (j - 1))
                     });
-
+                    weightShow.Add((j == 0 ? "Neural" + (m_heddenLayerSize) + "_" + targetCol[i].ColumnName + "tW_0" : "Neural" + (m_heddenLayerSize) + "_" + targetCol[i].ColumnName + "tW_Neural" + (m_heddenLayerSize - 1) + "_" + (j - 1)), weight);
                 }
                 ms_neural.Add(new Neural() { Layer = m_heddenLayerSize, Name = "Neural" + (m_heddenLayerSize) + "_" + targetCol[i].ColumnName, Weights = nWeights });
 
             }
+
+            //TODO 要刪
+            dataGridView2.DataSource = weightShow.ToList();
+        }
+
+        private double GetWeight(string colName)
+        {
+            string weightType = energyColumns.Where(item => colName.IndexOf(item.Name) > -1).OrderBy(item => item.Name).FirstOrDefault().WeightType;
+            Random r = new Random(Guid.NewGuid().GetHashCode());
+            double weight = -1;
+
+            switch (weightType)
+            {
+                case "high":
+                    weight = r.Next(700, 999) / 1000.0;
+                    break;
+                case "mid":
+                    weight = r.Next(400, 699) / 1000.0;
+
+                    break;
+                case "low":
+                    weight = r.Next(100, 399) / 1000.0;
+                    break;
+            }
+            return weight;
         }
 
         /// <summary>
@@ -700,6 +799,13 @@ namespace BackPropagationNeuralNetwork
             {
                 return (value - min) / (max - min);
             }
+        }
+
+        private void btn_Forecast_Click(object sender, EventArgs e)
+        {
+            m_learningRate = double.Parse(txt_LearningRate.Text);
+            m_momentumFactor = double.Parse(txt_MomentumFactor.Text);
+            NeuralNetwork();
         }
 
     }

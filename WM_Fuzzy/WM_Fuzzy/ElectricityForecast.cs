@@ -17,7 +17,7 @@ namespace WM_Fuzzy
 
         List<EnergyColumn> energyColumns = new List<EnergyColumn>();
         List<Feature> features = new List<Feature>();
-        string forecastColumnName = "Forecast_Total_kWh";
+        string forecastColumnName = "Target_Forecast";
 
         public ElectricityForecast()
         {
@@ -35,15 +35,16 @@ namespace WM_Fuzzy
             //energyConsumption.Add(new EnergyConsumption("Wind_Velocity", 3));
             //energyConsumption.Add(new EnergyConsumption("Air_kWh", 3));
             //energyConsumption.Add(new EnergyConsumption("Total_kWh", 3));
-            energyColumns.Add(new EnergyColumn("Temperature", "溫度", int.Parse(txt_TempCount.Text)));
-            energyColumns.Add(new EnergyColumn("Comfort", "舒適度", int.Parse(txt_ComCount.Text)));
-            energyColumns.Add(new EnergyColumn("Air_Relatively_kWh", "空調每日用電", int.Parse(txt_AirCount.Text)));
-            energyColumns.Add(new EnergyColumn("Total_Relatively_kWh", "總用電", int.Parse(txt_TotalCount.Text)));
+            energyColumns.Add(new EnergyColumn("Total_kWh", "即時總用電", int.Parse(txt_Total_kWh.Text)));
+            energyColumns.Add(new EnergyColumn("Total_Relatively_kWh", "相對總用電", int.Parse(txt_Total_Relatively_kWh.Text)));
+            energyColumns.Add(new EnergyColumn("Avg_Illumination", "平均日照", int.Parse(txt_Avg_Illumination.Text)));
+            energyColumns.Add(new EnergyColumn("Avg_Temperature", "平均溫度", int.Parse(txt_Avg_Temperature.Text)));
+            energyColumns.Add(new EnergyColumn("Target", "目標用電", int.Parse(txt_Target.Text)));
             DataTable resultData = new DataTable();
 
 
 
-            string fileName = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EnergyComsumptionData.xlsx");
+            string fileName = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EnergyComsumptionData.csv");
             var excelFile = new ExcelQueryFactory(fileName);
             excelFile.DatabaseEngine = LinqToExcel.Domain.DatabaseEngine.Ace;
             var excelSheet = excelFile.Worksheet("Energy Comsumption");
@@ -56,14 +57,7 @@ namespace WM_Fuzzy
 
             #region 設定training data及test data
             var trainData = excelSheet.Take(trainCount);
-            DateTime trainLastDate = DateTime.Now;
-            DateTime.TryParse(trainData.Last()["Date"], out trainLastDate);
-            var testData = excelSheet.AsEnumerable().Where(item =>
-            {
-                DateTime date = DateTime.Now;
-                DateTime.TryParse(item["Date"].ToString(), out date);
-                return date > trainLastDate;
-            });
+            var testData = excelSheet.Skip(testCount);
             #endregion
 
             #region 產生各feature的Region
@@ -132,18 +126,21 @@ namespace WM_Fuzzy
                 x1 = item.Value.XRule.Substring(0, 1),
                 x2 = item.Value.XRule.Substring(1, 1),
                 x3 = item.Value.XRule.Substring(2, 1),
+                x4 = item.Value.XRule.Substring(3, 1),
                 y = item.Value.YRule.ToString()
                 //itemX = item.Value.XRule,
                 //Value = DegreeLevel(item.Value.RuleFeature)
             }).ToList();
-            dataGridView1.Columns[0].HeaderText = "溫度";
+            dataGridView1.Columns[0].HeaderText = "即時總用電";
             dataGridView1.Columns[0].Width = 70;
-            dataGridView1.Columns[1].HeaderText = "舒適度";
+            dataGridView1.Columns[1].HeaderText = "相對總用電";
             dataGridView1.Columns[1].Width = 75;
-            dataGridView1.Columns[2].HeaderText = "空調用電";
+            dataGridView1.Columns[2].HeaderText = "平均日照";
             dataGridView1.Columns[2].Width = 90;
-            dataGridView1.Columns[3].HeaderText = "總用電";
+            dataGridView1.Columns[3].HeaderText = "平均溫度";
             dataGridView1.Columns[3].Width = 75;
+            dataGridView1.Columns[4].HeaderText = "目標用電";
+            dataGridView1.Columns[4].Width = 75;
             dataGridView1.DefaultCellStyle.Font = new System.Drawing.Font("微軟正黑體", 10);
             dataGridView1.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("微軟正黑體", 10);
 
@@ -234,20 +231,23 @@ namespace WM_Fuzzy
                 //});
 
             }
-
+            double mae = calculateMAE(resultData, "Target", "Target_Forecast");
+            lbl_Mae.Text = mae.ToString();
             dataGridView2.DataSource = resultData;
             dataGridView2.DefaultCellStyle.Font = new System.Drawing.Font("微軟正黑體", 10);
             dataGridView2.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("微軟正黑體", 10);
-            dataGridView2.Columns[0].HeaderText = "溫度";
-            dataGridView2.Columns[0].Width = 70;
-            dataGridView2.Columns[1].HeaderText = "舒適度";
-            dataGridView2.Columns[1].Width = 75;
-            dataGridView2.Columns[2].HeaderText = "空調用電";
+            dataGridView2.Columns[0].HeaderText = "即時總用電";
+            dataGridView2.Columns[0].Width = 105;
+            dataGridView2.Columns[1].HeaderText = "相對總用電";
+            dataGridView2.Columns[1].Width = 105;
+            dataGridView2.Columns[2].HeaderText = "平均日照";
             dataGridView2.Columns[2].Width = 90;
-            dataGridView2.Columns[3].HeaderText = "總用電";
-            dataGridView2.Columns[3].Width = 75;
-            dataGridView2.Columns[4].HeaderText = "預測總用電";
-            dataGridView2.Columns[4].Width = 105;
+            dataGridView2.Columns[3].HeaderText = "平均溫度";
+            dataGridView2.Columns[3].Width = 90;
+            dataGridView2.Columns[4].HeaderText = "目標用電";
+            dataGridView2.Columns[4].Width = 90;
+            dataGridView2.Columns[5].HeaderText = "預測用電";
+            dataGridView2.Columns[5].Width = 90;
 
             chart1.DataSource = resultData;
             chart1.DataBind();
@@ -392,40 +392,68 @@ namespace WM_Fuzzy
             return result;
         }
 
+        private double calculateMAE(DataTable forecastData, string p1, string p2)
+        {
+            double sum = 0;
+            double count = 0;
+            foreach (DataRow dr in forecastData.Rows)
+            {
+                double forecastValue = 0;
+                if (double.TryParse(dr[p2].ToString(), out forecastValue))
+                {
+                    if (!double.IsNaN(forecastValue))
+                    {
+                        sum += Math.Abs(double.Parse(dr[p1].ToString()) - forecastValue);
+                        count++;
+                    }
+                }
+            }
+            return sum / count;
+        }
+
+
         private void btn_Forecast_Click(object sender, EventArgs e)
         {
             int tryInt = -1;
-            if (!int.TryParse(txt_TempCount.Text, out tryInt))
+            if (!int.TryParse(txt_Total_kWh.Text, out tryInt))
             {
-                MessageBox.Show("溫度 member function region 請輸入數字！");
+                MessageBox.Show("即時總用電 member function region 請輸入數字！");
             }
             else if (tryInt < 3)
             {
-                MessageBox.Show("溫度 member function region 不能低於3個！");
+                MessageBox.Show("即時總用電 member function region 不能低於3個！");
             }
-            else if (!int.TryParse(txt_ComCount.Text, out tryInt))
+            else if (!int.TryParse(txt_Total_Relatively_kWh.Text, out tryInt))
             {
-                MessageBox.Show("舒適度 member function region 請輸入數字！");
-            }
-            else if (tryInt < 3)
-            {
-                MessageBox.Show("舒適度 member function region 不能低於3個！");
-            }
-            else if (!int.TryParse(txt_AirCount.Text, out tryInt))
-            {
-                MessageBox.Show("空調用電 member function region 請輸入數字！");
+                MessageBox.Show("相對總用電 member function region 請輸入數字！");
             }
             else if (tryInt < 3)
             {
-                MessageBox.Show("空調用電 member function region 不能低於3個！");
+                MessageBox.Show("相對總用電 member function region 不能低於3個！");
             }
-            else if (!int.TryParse(txt_TotalCount.Text, out tryInt))
+            else if (!int.TryParse(txt_Avg_Illumination.Text, out tryInt))
             {
-                MessageBox.Show("總用電 member function region 請輸入數字！");
+                MessageBox.Show("平均日照 member function region 請輸入數字！");
             }
             else if (tryInt < 3)
             {
-                MessageBox.Show("總用電 member function region 不能低於3個！");
+                MessageBox.Show("平均日照 member function region 不能低於3個！");
+            }
+            else if (!int.TryParse(txt_Avg_Temperature.Text, out tryInt))
+            {
+                MessageBox.Show("平均溫度 member function region 請輸入數字！");
+            }
+            else if (tryInt < 3)
+            {
+                MessageBox.Show("平均溫度 member function region 不能低於3個！");
+            }
+            else if (!int.TryParse(txt_Target.Text, out tryInt))
+            {
+                MessageBox.Show("目標用電 member function region 請輸入數字！");
+            }
+            else if (tryInt < 3)
+            {
+                MessageBox.Show("目標用電 member function region 不能低於3個！");
             }
             else
             {
@@ -435,18 +463,20 @@ namespace WM_Fuzzy
 
         private void btn_betterSet_Click(object sender, EventArgs e)
         {
-            txt_TempCount.Text = "10";
-            txt_ComCount.Text = "5";
-            txt_AirCount.Text = "15";
-            txt_TotalCount.Text = "25";
+            txt_Total_kWh.Text = "15";
+            txt_Total_Relatively_kWh.Text = "15";
+            txt_Avg_Illumination.Text = "15";
+            txt_Avg_Temperature.Text = "9";
+            txt_Target.Text = "15";
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            txt_TempCount.Text = "3";
-            txt_ComCount.Text = "3";
-            txt_AirCount.Text = "3";
-            txt_TotalCount.Text = "3";
+            txt_Total_kWh.Text = "3";
+            txt_Total_Relatively_kWh.Text = "3";
+            txt_Avg_Illumination.Text = "3";
+            txt_Avg_Temperature.Text = "3";
+            txt_Target.Text = "3";
         }
 
 

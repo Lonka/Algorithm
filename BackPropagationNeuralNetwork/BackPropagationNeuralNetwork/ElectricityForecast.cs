@@ -25,7 +25,7 @@ namespace BackPropagationNeuralNetwork
         int m_outputNeuralSize = 1;
         double m_learningRate = 0.7;
         double m_momentumFactor = 0.5;
-        int m_trainLoopCount = 1;
+        int m_trainLoopCount = 20;
         public ElectricityForecast()
         {
             InitializeComponent();
@@ -50,17 +50,18 @@ namespace BackPropagationNeuralNetwork
             dr["Value"] = "low";
             cbBindData.Rows.Add(dr);
 
+
+            cb_Total_Relatively_kWh.DataSource = cbBindData.Copy();
+            cb_Total_Relatively_kWh.SelectedValue = "mid";
+
+            cb_Total_kWh.DataSource = cbBindData.Copy();
+            cb_Total_kWh.SelectedValue = "mid";
+
             cb_Avg_Temperature.DataSource = cbBindData;
             cb_Avg_Temperature.SelectedValue = "mid";
 
-            cb_Total_Relatively_kWh.DataSource = cbBindData.Copy();
-            cb_Total_Relatively_kWh.SelectedValue = "high";
-
-            cb_Total_kWh.DataSource = cbBindData.Copy();
-            cb_Total_kWh.SelectedValue = "high";
-
             cb_Avg_Illumination.DataSource = cbBindData.Copy();
-            cb_Avg_Illumination.SelectedValue = "mid";
+            cb_Avg_Illumination.SelectedValue = "high";
 
             cb_Season.DataSource = cbBindData.Copy();
             cb_Season.SelectedValue = "low";
@@ -72,6 +73,7 @@ namespace BackPropagationNeuralNetwork
             cb_Holiday.SelectedValue = "low";
         }
 
+        //類神精網路
         private void NeuralNetwork()
         {
             ms_neural = new List<Neural>();
@@ -79,26 +81,29 @@ namespace BackPropagationNeuralNetwork
             energyColumns.Add(new EnergyColumn("Total_kWh", "即時總用電", DataType.Continuous, cb_Total_kWh.SelectedValue.ToString()));
             energyColumns.Add(new EnergyColumn("Total_Relatively_kWh", "相對總用電", DataType.Continuous, cb_Total_Relatively_kWh.SelectedValue.ToString()));
             energyColumns.Add(new EnergyColumn("Avg_Temperature", "平均溫度", DataType.Continuous, cb_Avg_Temperature.SelectedValue.ToString()));
-            //energyColumns.Add(new EnergyColumn("Avg_Illumination", "平均日照量", DataType.Continuous, cb_Avg_Illumination.SelectedValue.ToString()));
-            energyColumns.Add(new EnergyColumn("Season", "季節", DataType.Category, cb_Season.SelectedValue.ToString()));
-            energyColumns.Add(new EnergyColumn("Holiday", "假日", DataType.Category, cb_Holiday.SelectedValue.ToString()));
-            energyColumns.Add(new EnergyColumn("Work", "工作", DataType.Category, cb_Work.SelectedValue.ToString()));
-            energyColumns.Add(new EnergyColumn("Target", "預測電力", DataType.Continuous, string.Empty));
+            energyColumns.Add(new EnergyColumn("Avg_Illumination", "平均日照量", DataType.Continuous, cb_Avg_Illumination.SelectedValue.ToString()));
+            //energyColumns.Add(new EnergyColumn("Season", "季節", DataType.Category, cb_Season.SelectedValue.ToString()));
+            //energyColumns.Add(new EnergyColumn("Holiday", "假日", DataType.Category, cb_Holiday.SelectedValue.ToString()));
+            //energyColumns.Add(new EnergyColumn("Work", "工作", DataType.Category, cb_Work.SelectedValue.ToString()));
+            energyColumns.Add(new EnergyColumn("Target", "目標電力", DataType.Continuous, string.Empty));
 
             //Load File
             //For All Data
             var excelSheet = LoadData();
 
             //For Filter Data
-            var FilterData = excelSheet.Where(item => (
-                item["Season"].ToString().Equals("Summer")
-                || item["Season"].ToString().Equals("Spring")
-                || item["Season"].ToString().Equals("Winter")
-                || item["Season"].ToString().Equals("Fall")
-                )
+            var FilterData = excelSheet;
+            /*.Where(
+            item => (
+            item["Season"].ToString().Equals("Summer")
+             item["Season"].ToString().Equals("Spring")
+             item["Season"].ToString().Equals("Winter")
+             item["Season"].ToString().Equals("Fall")
+            )
 
-                //&& item["Work"].ToString().Equals("TRUE")
-                );
+             item["Work"].ToString().Equals("TRUE")
+            )*/
+            ;
 
             //For All Data
             //FindRange(excelSheet);
@@ -152,20 +157,38 @@ namespace BackPropagationNeuralNetwork
 
             DataTable forecastData = Testing(testingExcelData, testingData);
             dataGridView1.DataSource = forecastData;
-            dataGridView1.Columns[0].HeaderText = "即時總用電";
-            dataGridView1.Columns[1].HeaderText = "相對總用電";
-            dataGridView1.Columns[2].HeaderText = "平均溫度";
-            //dataGridView1.Columns[3].HeaderText = "平均日照量";
-            dataGridView1.Columns[3].HeaderText = "季節";
-            dataGridView1.Columns[4].HeaderText = "假日";
-            dataGridView1.Columns[5].HeaderText = "工作";
-            dataGridView1.Columns[6].HeaderText = "目標電力";
-            dataGridView1.Columns[7].HeaderText = "預測電力";
+            double mae = calculateMAE(forecastData, "Target", "Target_Forecast");
+            lbl_Mae.Text = mae.ToString("#.#####");
+            for (int i = 0; i < energyColumns.Count; i++)
+            {
+                dataGridView1.Columns[i].HeaderText = energyColumns[i].ChiName;
+            }
+            dataGridView1.Columns[dataGridView1.Columns.Count - 1].HeaderText = "預測電力";
             #endregion
 
             chart1.DataSource = forecastData;
             chart1.DataBind();
 
+
+        }
+
+        private double calculateMAE(DataTable forecastData, string p1, string p2)
+        {
+            double sum = 0;
+            double count = 0;
+            foreach (DataRow dr in forecastData.Rows)
+            {
+                double forecastValue = 0;
+                if (double.TryParse(dr[p2].ToString(), out forecastValue))
+                {
+                    if (!double.IsNaN(forecastValue))
+                    {
+                        sum += Math.Abs(double.Parse(dr[p1].ToString()) - forecastValue);
+                        count++;
+                    }
+                }
+            }
+            return sum / count;
         }
 
 
@@ -193,7 +216,8 @@ namespace BackPropagationNeuralNetwork
                         //TODO 沒處理類別的輸出值及多個連續值
                         dr[eng.Name] = row[eng.Name];
                         Dictionary<string, double> outputValue = ForwardPropagation(testingData, rowIndex);
-                        dr[eng.Name + "_Forecast"] = outputValue["Neural" + m_heddenLayerSize + "_" + eng.Name] * eng.MaxValue;
+                        double realForecastValue = RestoreForecastValue(outputValue["Neural" + m_heddenLayerSize + "_" + eng.Name], eng);
+                        dr[eng.Name + "_Forecast"] = realForecastValue;
                         continue;
                     }
                 }
@@ -202,6 +226,11 @@ namespace BackPropagationNeuralNetwork
                 rowIndex++;
             }
             return forecastData;
+        }
+
+        private double RestoreForecastValue(double sourceValue, EnergyColumn eng)
+        {
+            return (sourceValue * (eng.MaxValue - eng.MinValue)) + eng.MinValue;
         }
 
 
@@ -241,6 +270,7 @@ namespace BackPropagationNeuralNetwork
             return result / 2;
         }
 
+        //Back Propagation 修改權重
         private void BackPropagation(DataRow dataRow)
         {
             var layerList = ms_neural.AsEnumerable().Select(item => item.Layer).Distinct().OrderByDescending(item => item).ToList();
@@ -488,7 +518,11 @@ namespace BackPropagationNeuralNetwork
                     {
                         continue;
                     }
-                    double weight = GetWeight(data.Columns[(j == 0 ? 0 : j - 1)].ColumnName);
+                    double weight = 0;
+                    if (j > 0)
+                    {
+                        weight = GetWeight(data.Columns[j - 1].ColumnName);
+                    }
                     nWeights.Add(new NeuralWeight()
                     {
                         //Weight = (j == 0 ? 1 - weight : weight),
@@ -516,7 +550,7 @@ namespace BackPropagationNeuralNetwork
                             Weight = weight,
                             Name = (j == 0 ? "W_0" : "W_Neural" + (s - 1) + "_" + i)
                         });
-                        weightShow.Add((j == 0 ? "Neural" + s + "_" + i+"W_0" : "Neural" + s + "_" + i+"W_Neural" + (s - 1) + "_" + i), weight);
+                        weightShow.Add((j == 0 ? "Neural" + s + "_" + i + "W_0" : "Neural" + s + "_" + i + "W_Neural" + (s - 1) + "_" + i), weight);
                     }
                     ms_neural.Add(new Neural() { Layer = s, Name = "Neural" + s + "_" + i, Weights = nWeights });
 
@@ -531,7 +565,12 @@ namespace BackPropagationNeuralNetwork
                 for (int j = 0; j <= m_heddenNeuralSize; j++)
                 {
                     Random r = new Random(Guid.NewGuid().GetHashCode());
-                    double weight = r.Next(100, 999) / 1000.0;
+                    double weight = 0;
+                    if (j > 0)
+                    {
+                        weight = r.Next(100, 999) / 1000.0;
+                    }
+
                     nWeights.Add(new NeuralWeight()
                     {
                         //Weight = (j == 0 ? 1 - weight : weight),

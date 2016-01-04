@@ -1,0 +1,32 @@
+﻿<Window x:Class="AisAlgorithm.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:AisAlgorithm.ViewModel"
+        xmlns:vw="clr-namespace:AisAlgorithm.View"
+        Title="MainWindow" Height="600" Width="800">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:EmployeeListViewModel}">
+            <vw:EmployeeListView Margin="20"/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EmployeeListViewModel1}">
+            <vw:EmployeeListView/>
+        </DataTemplate>
+
+    </Window.Resources>
+    <Grid Margin="4">
+        <!--<Border Background="GhostWhite" BorderBrush="LightGray" BorderThickness="1" CornerRadius="5">
+           
+
+        </Border>-->
+        <ItemsControl ItemsSource="{Binding ViewModels}" Margin="176,50,419,348"></ItemsControl>
+        <Button Name="btn_Execute" Content="Execute" HorizontalAlignment="Left" Margin="699,10,0,0" VerticalAlignment="Top" Width="75" Click="btn_Execute_Click"/>
+        <Button Name="btn_Setting" Content="Setting" HorizontalAlignment="Left" Margin="619,10,0,0" VerticalAlignment="Top" Width="75" Click="btn_Setting_Click"/>
+        <RadioButton Name="rb_GroupAvg" Content="平均" GroupName="GroupCenter" Margin="712,50,10,491"/>
+        <RadioButton Name="rb_GroupFirst" Content="第一點" IsChecked="True" GroupName="GroupCenter" Margin="619,50,101,491"/>
+        <RadioButton Name="rb_Hamming" Content="HammingDistence" IsChecked="True" GroupName="ClusterintMethod" Margin="503,76,144,465"/>
+        <RadioButton Name="rb_Eucidean" Content="EucideanDistence" GroupName="ClusterintMethod" Margin="503,105,159,436"/>
+        <TextBox Name="txt_EucThreshold" HorizontalAlignment="Left" Height="23" Margin="655,105,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" Width="39"/>
+        <TextBox Name="txt_HamThreshold" HorizontalAlignment="Left" Height="23" Margin="655,74,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="39"/>
+        <TextBox x:Name="txt_HamThresholdErrorPercentage" HorizontalAlignment="Left" Height="23" Margin="712,76,0,0" TextWrapping="Wrap" Text="40" VerticalAlignment="Top" Width="39"/>
+    </Grid>
+</Window>

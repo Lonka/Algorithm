@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:AisAlgorithm.ViewModel"
         xmlns:vw="clr-namespace:AisAlgorithm.View"
-        Title="MainWindow" Height="600" Width="800">
+        xmlns:d3="http://research.microsoft.com/DynamicDataDisplay/1.0"
+        Title="MainWindow" Height="438.823" Width="408.235">
     <Window.Resources>
         <DataTemplate DataType="{x:Type vm:EmployeeListViewModel}">
             <vw:EmployeeListView Margin="20"/>
@@ -13,20 +14,47 @@
         </DataTemplate>
 
     </Window.Resources>
-    <Grid Margin="4">
+    <Grid >
         <!--<Border Background="GhostWhite" BorderBrush="LightGray" BorderThickness="1" CornerRadius="5">
            
 
         </Border>-->
-        <ItemsControl ItemsSource="{Binding ViewModels}" Margin="176,50,419,348"></ItemsControl>
-        <Button Name="btn_Execute" Content="Execute" HorizontalAlignment="Left" Margin="699,10,0,0" VerticalAlignment="Top" Width="75" Click="btn_Execute_Click"/>
-        <Button Name="btn_Setting" Content="Setting" HorizontalAlignment="Left" Margin="619,10,0,0" VerticalAlignment="Top" Width="75" Click="btn_Setting_Click"/>
-        <RadioButton Name="rb_GroupAvg" Content="平均" GroupName="GroupCenter" Margin="712,50,10,491"/>
-        <RadioButton Name="rb_GroupFirst" Content="第一點" IsChecked="True" GroupName="GroupCenter" Margin="619,50,101,491"/>
-        <RadioButton Name="rb_Hamming" Content="HammingDistence" IsChecked="True" GroupName="ClusterintMethod" Margin="503,76,144,465"/>
-        <RadioButton Name="rb_Eucidean" Content="EucideanDistence" GroupName="ClusterintMethod" Margin="503,105,159,436"/>
-        <TextBox Name="txt_EucThreshold" HorizontalAlignment="Left" Height="23" Margin="655,105,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" Width="39"/>
-        <TextBox Name="txt_HamThreshold" HorizontalAlignment="Left" Height="23" Margin="655,74,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="39"/>
-        <TextBox x:Name="txt_HamThresholdErrorPercentage" HorizontalAlignment="Left" Height="23" Margin="712,76,0,0" TextWrapping="Wrap" Text="40" VerticalAlignment="Top" Width="39"/>
+        <ItemsControl ItemsSource="{Binding ViewModels}" Margin="585,388,10,10"></ItemsControl>
+        <Button Name="btn_Execute" Content="Execute" HorizontalAlignment="Left" Margin="298,12,0,0" VerticalAlignment="Top" Width="75" Click="btn_Execute_Click"/>
+        <Button Name="btn_Setting" Content="Setting" HorizontalAlignment="Left" Margin="143,12,0,0" VerticalAlignment="Top" Width="75" Click="btn_Setting_Click" Visibility="Collapsed"/>
+        <GroupBox Header="分群的設定" HorizontalAlignment="Left" Margin="10,84,0,0" VerticalAlignment="Top" Height="294" Width="196">
+            <Grid>
+            <RadioButton Name="rb_GroupAvg" Height="23" Width="150" Content="平均" IsChecked="True" GroupName="GroupCenter" Margin="95,10,0,239" />
+        <RadioButton Name="rb_GroupFirst" Height="23" Width="150" Content="第一點"  GroupName="GroupCenter" Margin="95,33,0,216" />
+        <RadioButton Name="rb_Hamming" Height="23" Width="150" Content="HammingDistence"  GroupName="ClusterintMethod" Margin="2,114,32,135" />
+        <RadioButton Name="rb_Eucidean" Height="23" Width="150" Content="EucideanDistence" IsChecked="True" GroupName="ClusterintMethod" Margin="2,61,32,188"/>
+        <TextBox Name="txt_EucThreshold" HorizontalAlignment="Left" Height="23" Margin="132,86,0,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top" Width="39"/>
+        <TextBox Name="txt_HamThreshold" HorizontalAlignment="Left" Height="23" Margin="132,135,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="39"/>
+        <TextBox x:Name="txt_HamThresholdErrorPercentage" HorizontalAlignment="Left" Height="23" Margin="132,167,0,0" TextWrapping="Wrap" Text="40" VerticalAlignment="Top" Width="39"/>
+        <TextBlock HorizontalAlignment="Left" Margin="55,138,0,0" TextWrapping="Wrap" Text="最多錯誤欄位" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="31,170,0,0" TextWrapping="Wrap" Text="每個欄位的錯誤率" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="91,89,0,0" TextWrapping="Wrap" Text="相似度" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="分群計算方法" VerticalAlignment="Top"/>
+            </Grid>
+        </GroupBox>
+
+
+        <TextBlock HorizontalAlignment="Left" Margin="63,52,0,0" TextWrapping="Wrap" Text="測試資料比率" VerticalAlignment="Top"/>
+        <TextBox x:Name="txt_TestPercentage" HorizontalAlignment="Left" Height="23" Margin="145,49,0,0" TextWrapping="Wrap" Text="0.5" VerticalAlignment="Top" Width="39"/>
+        <ListBox x:Name="lb_Field" HorizontalAlignment="Left" Height="252" Margin="223,126,0,0" VerticalAlignment="Top"  Width="150">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox Content="{Binding Text}" IsChecked="{Binding Checked}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+
+        </ListBox>
+        <TextBlock HorizontalAlignment="Left" Margin="226,98,0,0" TextWrapping="Wrap" Text="使用的欄位" VerticalAlignment="Top"/>
+        <CheckBox x:Name="cb_normalization" Content="最大最小值正規化" HorizontalAlignment="Left" IsChecked="True" Margin="226,52,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="txt_PredictionCount" HorizontalAlignment="Left" Height="23" Margin="145,17,0,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top" Width="39"/>
+        <TextBlock HorizontalAlignment="Left" Margin="87,18,0,0" TextWrapping="Wrap" Text="預測個數" VerticalAlignment="Top"/>
+
+
+
     </Grid>
 </Window>

@@ -9,6 +9,6 @@ namespace AisAlgorithm
 {
     internal interface ISimilarity
     {
-        bool Caculate(Dictionary<string, double> colAvg, DataRow dr);
+        bool Caculate(Dictionary<string, double> colCaculate, DataRow dr,out double similarityValue);
     }
 }

@@ -58,11 +58,13 @@
     <Compile Include="DataAccess\EmployeeRepository1.cs" />
     <Compile Include="DataAccess\EmployeeRepository.cs" />
     <Compile Include="Distence\EuclideanDistence.cs" />
+    <Compile Include="Distence\PredictionDistence.cs" />
     <Compile Include="GroupCenter.cs" />
     <Compile Include="GroupInfo.cs" />
     <Compile Include="Distence\HammingDistence.cs" />
     <Compile Include="Distence\ISimilarity.cs" />
     <Compile Include="MaxMinValue.cs" />
+    <Compile Include="Model\CheckBoxListItem.cs" />
     <Compile Include="Model\ElectricityComsumption.cs" />
     <Compile Include="Model\Employee.cs" />
     <Compile Include="ViewModel\EmployeeListViewModel1.cs" />
@@ -116,6 +118,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Content Include="Data.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

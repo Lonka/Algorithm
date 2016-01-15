@@ -55,6 +55,20 @@ namespace AisAlgorithm
             }
         }
 
+        private Dictionary<string, double> _colCaculate = new Dictionary<string, double>();
+        public Dictionary<string, double> ColCaculate
+        {
+            get
+            {
+                return _colCaculate;
+            }
+            set
+            {
+                _colCaculate = value;
+            }
+        }
+
+        public double SimilarityValue { get; set; }
 
         public bool Add(DataRow dr)
         {
@@ -89,15 +103,18 @@ namespace AisAlgorithm
                         {
                             ColSum.Add(colName, 0);
                             ColAvg.Add(colName, 0);
-                            if(m_center ==  GroupCenter.First)
+                            ColCaculate.Add(colName, 0);
+                            if (m_center == GroupCenter.First)
                             {
-                                ColAvg[colName] = tempValue[colName];
+                                ColCaculate[colName] = tempValue[colName];
                             }
                         }
+                        ColSum[colName] += tempValue[colName];
+                        ColAvg[colName] = ColSum[colName] / Rows.Count;
+
                         if (m_center == GroupCenter.Avg)
                         {
-                            ColSum[colName] += tempValue[colName];
-                            ColAvg[colName] = ColSum[colName] / Rows.Count;
+                            ColCaculate[colName] = ColAvg[colName];
                         }
                     }
                     result = true;

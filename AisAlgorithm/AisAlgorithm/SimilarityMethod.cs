@@ -15,6 +15,11 @@ namespace AisAlgorithm
         /// <summary>
         /// 歐幾里德距離
         /// </summary>
-        EucideanDistence
+        EucideanDistence,
+
+        /// <summary>
+        /// 忘了叫什麼名字
+        /// </summary>
+        PredictionDistence
     }
 }

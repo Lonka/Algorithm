@@ -5,7 +5,6 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using AisAlgorithm.ViewModel;
 
 namespace AisAlgorithm
 {
@@ -18,10 +17,6 @@ namespace AisAlgorithm
         {
             //https://www.youtube.com/watch?v=PUvZ5wVrZ4s
             base.OnStartup(e);
-            MainWindow window = new MainWindow();
-            var viewModel = new MainWindowViewModel();
-            window.DataContext = viewModel;
-            window.Show();
         }
     }
 }

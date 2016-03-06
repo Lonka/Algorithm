@@ -1,17 +1,10 @@
 ﻿<Window x:Class="AisAlgorithm.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:AisAlgorithm.ViewModel"
-        xmlns:vw="clr-namespace:AisAlgorithm.View"
         xmlns:d3="http://research.microsoft.com/DynamicDataDisplay/1.0"
         Title="MainWindow" Height="438.823" Width="408.235">
     <Window.Resources>
-        <DataTemplate DataType="{x:Type vm:EmployeeListViewModel}">
-            <vw:EmployeeListView Margin="20"/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:EmployeeListViewModel1}">
-            <vw:EmployeeListView/>
-        </DataTemplate>
+       
 
     </Window.Resources>
     <Grid >
@@ -28,7 +21,7 @@
         <RadioButton Name="rb_GroupFirst" Height="23" Width="150" Content="第一點"  GroupName="GroupCenter" Margin="95,33,0,216" />
         <RadioButton Name="rb_Hamming" Height="23" Width="150" Content="HammingDistence"  GroupName="ClusterintMethod" Margin="2,114,32,135" />
         <RadioButton Name="rb_Eucidean" Height="23" Width="150" Content="EucideanDistence" IsChecked="True" GroupName="ClusterintMethod" Margin="2,61,32,188"/>
-        <TextBox Name="txt_EucThreshold" HorizontalAlignment="Left" Height="23" Margin="132,86,0,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top" Width="39"/>
+        <TextBox Name="txt_EucThreshold" HorizontalAlignment="Left" Height="23" Margin="132,86,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" Width="39"/>
         <TextBox Name="txt_HamThreshold" HorizontalAlignment="Left" Height="23" Margin="132,135,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="39"/>
         <TextBox x:Name="txt_HamThresholdErrorPercentage" HorizontalAlignment="Left" Height="23" Margin="132,167,0,0" TextWrapping="Wrap" Text="40" VerticalAlignment="Top" Width="39"/>
         <TextBlock HorizontalAlignment="Left" Margin="55,138,0,0" TextWrapping="Wrap" Text="最多錯誤欄位" VerticalAlignment="Top"/>
@@ -50,7 +43,7 @@
 
         </ListBox>
         <TextBlock HorizontalAlignment="Left" Margin="226,98,0,0" TextWrapping="Wrap" Text="使用的欄位" VerticalAlignment="Top"/>
-        <CheckBox x:Name="cb_normalization" Content="最大最小值正規化" HorizontalAlignment="Left" IsChecked="True" Margin="226,52,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="cb_normalization" Content="最大最小值正規化" HorizontalAlignment="Left" Margin="226,52,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="txt_PredictionCount" HorizontalAlignment="Left" Height="23" Margin="145,17,0,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top" Width="39"/>
         <TextBlock HorizontalAlignment="Left" Margin="87,18,0,0" TextWrapping="Wrap" Text="預測個數" VerticalAlignment="Top"/>
 

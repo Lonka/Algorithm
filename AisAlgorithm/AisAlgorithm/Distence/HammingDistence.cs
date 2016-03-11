@@ -20,13 +20,23 @@ namespace AisAlgorithm
         public bool Caculate(Dictionary<string, double> colCaculate, DataRow dr, out double similarityValue)
         {
             similarityValue = double.MinValue;
-            double orginalValue = double.MinValue;
+            double newValue = double.MinValue;
             int colOverThreshold = 0;
             foreach (KeyValuePair<string, double> col in colCaculate)
             {
-                if (double.TryParse(dr[col.Key].ToString(), out orginalValue))
+                if (double.TryParse(dr[col.Key].ToString(), out newValue))
                 {
-                    double error = Math.Abs((col.Value - orginalValue) / orginalValue) * 100;
+                    double error = 0;
+                    //http://zh.wikihow.com/%E8%AE%A1%E7%AE%97%E7%99%BE%E5%88%86%E6%AF%94%E5%8F%98%E5%8C%96
+                    if (col.Value == 0)
+                    {
+                        error = Math.Abs(newValue) * 100;
+                    }
+                    else
+                    {
+                        error = Math.Abs((newValue - col.Value) / col.Value) * 100;
+                    }
+
                     if (error > errorPercentage)
                     {
                         colOverThreshold++;

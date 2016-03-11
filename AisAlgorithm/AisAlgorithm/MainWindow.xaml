@@ -19,11 +19,11 @@
             <Grid>
             <RadioButton Name="rb_GroupAvg" Height="23" Width="150" Content="平均" IsChecked="True" GroupName="GroupCenter" Margin="95,10,0,239" />
         <RadioButton Name="rb_GroupFirst" Height="23" Width="150" Content="第一點"  GroupName="GroupCenter" Margin="95,33,0,216" />
-        <RadioButton Name="rb_Hamming" Height="23" Width="150" Content="HammingDistence"  GroupName="ClusterintMethod" Margin="2,114,32,135" />
-        <RadioButton Name="rb_Eucidean" Height="23" Width="150" Content="EucideanDistence" IsChecked="True" GroupName="ClusterintMethod" Margin="2,61,32,188"/>
+                <RadioButton Name="rb_Hamming" Height="23" Width="150" Content="HammingDistence" IsChecked="True" GroupName="ClusterintMethod" Margin="2,114,32,135" />
+        <RadioButton Name="rb_Eucidean" Height="23" Width="150" Content="EucideanDistence"  GroupName="ClusterintMethod" Margin="2,61,32,188"/>
         <TextBox Name="txt_EucThreshold" HorizontalAlignment="Left" Height="23" Margin="132,86,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" Width="39"/>
         <TextBox Name="txt_HamThreshold" HorizontalAlignment="Left" Height="23" Margin="132,135,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="39"/>
-        <TextBox x:Name="txt_HamThresholdErrorPercentage" HorizontalAlignment="Left" Height="23" Margin="132,167,0,0" TextWrapping="Wrap" Text="40" VerticalAlignment="Top" Width="39"/>
+        <TextBox x:Name="txt_HamThresholdErrorPercentage" HorizontalAlignment="Left" Height="23" Margin="132,167,0,0" TextWrapping="Wrap" Text="20" VerticalAlignment="Top" Width="39"/>
         <TextBlock HorizontalAlignment="Left" Margin="55,138,0,0" TextWrapping="Wrap" Text="最多錯誤欄位" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="31,170,0,0" TextWrapping="Wrap" Text="每個欄位的錯誤率" VerticalAlignment="Top"/>
         <TextBlock HorizontalAlignment="Left" Margin="91,89,0,0" TextWrapping="Wrap" Text="相似度" VerticalAlignment="Top"/>
@@ -33,7 +33,7 @@
 
 
         <TextBlock HorizontalAlignment="Left" Margin="63,52,0,0" TextWrapping="Wrap" Text="測試資料比率" VerticalAlignment="Top"/>
-        <TextBox x:Name="txt_TestPercentage" HorizontalAlignment="Left" Height="23" Margin="145,49,0,0" TextWrapping="Wrap" Text="0.5" VerticalAlignment="Top" Width="39"/>
+        <TextBox x:Name="txt_TestPercentage" HorizontalAlignment="Left" Height="23" Margin="145,49,0,0" TextWrapping="Wrap" Text="0.8" VerticalAlignment="Top" Width="39"/>
         <ListBox x:Name="lb_Field" HorizontalAlignment="Left" Height="252" Margin="223,126,0,0" VerticalAlignment="Top"  Width="150">
             <ListBox.ItemTemplate>
                 <DataTemplate>
@@ -43,7 +43,7 @@
 
         </ListBox>
         <TextBlock HorizontalAlignment="Left" Margin="226,98,0,0" TextWrapping="Wrap" Text="使用的欄位" VerticalAlignment="Top"/>
-        <CheckBox x:Name="cb_normalization" Content="最大最小值正規化" HorizontalAlignment="Left" Margin="226,52,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="cb_normalization" Content="最大最小值正規化" IsChecked="True" HorizontalAlignment="Left" Margin="226,52,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="txt_PredictionCount" HorizontalAlignment="Left" Height="23" Margin="145,17,0,0" TextWrapping="Wrap" Text="10" VerticalAlignment="Top" Width="39"/>
         <TextBlock HorizontalAlignment="Left" Margin="87,18,0,0" TextWrapping="Wrap" Text="預測個數" VerticalAlignment="Top"/>
 

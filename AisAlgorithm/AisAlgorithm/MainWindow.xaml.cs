@@ -18,6 +18,8 @@ namespace AisAlgorithm
     /// </summary>
     public partial class MainWindow : Window
     {
+        //用漢明分群應該比較合理
+        //
         private int predictionCount;
         private DataTable sourceData;
 
@@ -268,6 +270,7 @@ namespace AisAlgorithm
                     Dictionary<int, GroupInfo> forecastingGroupData = clustering.FilterGroup(dr, groupData);
 
                     //計算出該點與每個群的相似度
+                    //todo weight應該可以再調整
                     Dictionary<int, double> weight = CaculateWeight(forecastingGroupData);
 
                     //每一群該點與每個點相似度
@@ -313,7 +316,7 @@ namespace AisAlgorithm
                     {
                         DataRow rDr = result.NewRow();
                         rDr["OrginalValue"] = double.Parse(relValueStr);
-                        rDr["ForecastValue"] = electricityValue * (cb_normalization.IsChecked.Value ? (norCol["Rel_kWh"].Max - norCol["Rel_kWh"].Min) + norCol["Rel_kWh"].Min : 1);
+                        rDr["ForecastValue"] = (cb_normalization.IsChecked.Value ? electricityValue * (norCol["Rel_kWh"].Max - norCol["Rel_kWh"].Min) + norCol["Rel_kWh"].Min : electricityValue);
                         rDr["TargetValue"] = targetValue;
                         result.Rows.Add(rDr);
                     }

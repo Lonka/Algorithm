@@ -72,7 +72,7 @@ namespace AisAlgorithm
                 denominatorRight += Math.Pow((col.Value - groupAvg), 2);
             }
 
-            similarityValue = (numerator / Math.Sqrt(denominatorLeft) + Math.Sqrt(denominatorRight)) / colCaculate.Count;
+            similarityValue = (numerator / (Math.Sqrt(denominatorLeft) + Math.Sqrt(denominatorRight))) / (colCaculate.Count-1);
             //TODO Threshold
 
             return true;

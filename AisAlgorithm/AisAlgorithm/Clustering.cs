@@ -99,8 +99,8 @@ namespace AisAlgorithm
                             isSimilarity = true;
                             dr["GroupId"] += id + ",";
                             result[id].Add(dr);
-                            //如果只屬於一個群就需要continue離開
-                            //continue;
+                            //如果只屬於一個群就需要break離開
+                            break ;
                         }
                     }
 

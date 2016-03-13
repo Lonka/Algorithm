@@ -24,6 +24,10 @@ namespace AisAlgorithm
             int colOverThreshold = 0;
             foreach (KeyValuePair<string, double> col in colCaculate)
             {
+                if (col.Key.Equals("Target_Kwh"))
+                {
+                    continue;
+                }
                 if (double.TryParse(dr[col.Key].ToString(), out newValue))
                 {
                     double error = 0;

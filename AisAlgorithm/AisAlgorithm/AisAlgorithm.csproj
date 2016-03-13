@@ -55,7 +55,7 @@
     </ApplicationDefinition>
     <Compile Include="ClusteringSetting.cs" />
     <Compile Include="Distence\EuclideanDistence.cs" />
-    <Compile Include="Distence\PredictionDistence.cs" />
+    <Compile Include="Distence\PearsonDistence.cs" />
     <Compile Include="GroupCenter.cs" />
     <Compile Include="GroupInfo.cs" />
     <Compile Include="Distence\HammingDistence.cs" />

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace AisAlgorithm
 {
+    //http://yuguangchuan.github.io/2015/11/17/Distance-measurements/
     internal class Clustering
     {
         private ISimilarity similarity;
@@ -28,8 +29,8 @@ namespace AisAlgorithm
                 case SimilarityMethod.EucideanDistence:
                     similarity = new EuclideanDistence(m_setting.ThresholdList[0]);
                     break;
-                case SimilarityMethod.PredictionDistence:
-                    similarity = new PredictionDistence();
+                case SimilarityMethod.PearsonDistence:
+                    similarity = new PearsonDistence(m_setting.ThresholdList[0]);
                     break;
 
                 default:

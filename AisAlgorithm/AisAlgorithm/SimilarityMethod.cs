@@ -20,6 +20,10 @@ namespace AisAlgorithm
         /// <summary>
         /// 忘了叫什麼名字
         /// </summary>
+        PearsonDistence,
+        /// <summary>
+        /// 忘了叫什麼名字
+        /// </summary>
         PredictionDistence
     }
 }

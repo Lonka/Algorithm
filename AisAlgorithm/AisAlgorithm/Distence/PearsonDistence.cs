@@ -7,12 +7,13 @@ using System.Data;
 
 namespace AisAlgorithm
 {
-    internal class PredictionDistence : ISimilarity
+    internal class PearsonDistence : ISimilarity
     {
-        public PredictionDistence()
+        public PearsonDistence(double _similarityThreshold)
         {
-
+            similarityThreshold = _similarityThreshold;
         }
+        private double similarityThreshold = 0.9;
 
         public bool Caculate(System.Data.DataRow targetDr, System.Data.DataRow dr, out double similarityValue)
         {
@@ -21,7 +22,7 @@ namespace AisAlgorithm
             similarityValue = double.MinValue;
             foreach (DataColumn dc in targetDr.Table.Columns)
             {
-                if (dc.ColumnName != "GroupId" 
+                if (dc.ColumnName != "GroupId"
                     && double.TryParse(targetDr[dc.ColumnName].ToString(), out orginalValue))
                 {
                     colCaculate[dc.ColumnName] = orginalValue;
@@ -39,7 +40,7 @@ namespace AisAlgorithm
             Dictionary<string, double> selfValue = new Dictionary<string, double>();
             foreach (KeyValuePair<string, double> col in colCaculate)
             {
-                if(col.Key=="RowIndex")
+                if (col.Key == "RowIndex" || col.Key == "Target_Kwh")
                 {
                     continue;
                 }
@@ -54,15 +55,15 @@ namespace AisAlgorithm
                     return false;
                 }
             }
-            groupAvg = groupAvg / (colCaculate.Count - 1);
-            selfAvg = selfAvg / (colCaculate.Count - 1);
+            groupAvg = groupAvg / (colCaculate.Count - 2);
+            selfAvg = selfAvg / (colCaculate.Count - 2);
 
             double numerator = 0;
             double denominatorLeft = 0;
             double denominatorRight = 0;
             foreach (KeyValuePair<string, double> col in colCaculate)
             {
-                if (col.Key == "RowIndex")
+                if (col.Key == "RowIndex" || col.Key == "Target_Kwh")
                 {
                     continue;
                 }
@@ -72,10 +73,15 @@ namespace AisAlgorithm
                 denominatorRight += Math.Pow((col.Value - groupAvg), 2);
             }
 
-            similarityValue = (numerator / (Math.Sqrt(denominatorLeft) + Math.Sqrt(denominatorRight))) / (colCaculate.Count-1);
-            //TODO Threshold
+            //similarityValue = (numerator / (Math.Sqrt(denominatorLeft) + Math.Sqrt(denominatorRight))) / (colCaculate.Count-2);
+            double similarity = (numerator / (Math.Sqrt(denominatorLeft * denominatorRight)));
 
-            return true;
+            if (similarity > similarityThreshold)
+            {
+                similarityValue = similarity;
+                return true;
+            }
+            return false ;
 
         }
     }

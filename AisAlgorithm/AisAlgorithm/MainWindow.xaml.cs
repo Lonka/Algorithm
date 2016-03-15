@@ -31,9 +31,9 @@ namespace AisAlgorithm
             items1.Add(new CheckBoxListItem(true, "相對總用電", "Rel_kWh"));
             items1.Add(new CheckBoxListItem(false, "即時空調用電", "Real_Air_kWh"));
             items1.Add(new CheckBoxListItem(true, "相對空調用電", "Rel_Air_kWh"));
-            items1.Add(new CheckBoxListItem(true, "平均日照", "Avg_Light"));
-            items1.Add(new CheckBoxListItem(true, "平均氣溫", "Avg_Tp"));
-            items1.Add(new CheckBoxListItem(true, "平均溼度", "Avg_Humidity"));
+            items1.Add(new CheckBoxListItem(false, "平均日照", "Avg_Light"));
+            items1.Add(new CheckBoxListItem(false, "平均氣溫", "Avg_Tp"));
+            items1.Add(new CheckBoxListItem(false, "平均溼度", "Avg_Humidity"));
             items1.Add(new CheckBoxListItem(false, "風向", "Wind_Direction"));
             items1.Add(new CheckBoxListItem(false, "風速", "Wind_Speed"));
             items1.Add(new CheckBoxListItem(false, "平均舒適度", "Avg_Comfort"));
@@ -47,6 +47,27 @@ namespace AisAlgorithm
 
         private void btn_Execute_Click(object sender, RoutedEventArgs e)
         {
+            bool HasData = false;
+            DataTable trainData = new DataTable();
+            trainData.TableName = "Train";
+            DataTable testData = new DataTable();
+            testData.TableName = "Test";
+
+#if(DEBUG)
+            //if (File.Exists("TestData"))
+            //{
+            //    DataSet ds = new DataSet();
+            //    ds.ReadXml("TestData");
+            //    testData = ds.Tables[0];
+            //    if (File.Exists("TrainData"))
+            //    {
+            //        ds = new DataSet();
+            //        ds.ReadXml("TrainData");
+            //        trainData = ds.Tables[0];
+            //        HasData = true;
+            //    }
+            //}
+#endif
             //讀檔
             string dataPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data.csv");
             DataTable dt;
@@ -64,37 +85,47 @@ namespace AisAlgorithm
             //拆解類別欄位，現已沒用
             //dt = BreakData(dt);
             dt = Normalization(dt);
-
-
-            //測試資料百分比
-            double testDataPercentage = double.Parse(txt_TestPercentage.Text);
-            dt.Columns.Add("TempIndex");
-
-            DataTable trainData = dt.Clone();
-            DataTable testData = dt.Clone();
-
-            List<string> seasonList = new List<string>();
-            seasonList.Add("Spring");
-            seasonList.Add("Summer");
-            seasonList.Add("Fall");
-            seasonList.Add("Winter");
-            int rowIndex = 1;
-            foreach (string season in seasonList)
+            if (!HasData)
             {
-                int firstRowIndex = rowIndex;
-                DataTable seasonDt = dt.AsEnumerable().Where(item => item["Season"].ToString().Equals(season)).CopyToDataTable();
-                rowIndex = SetRowIndex(seasonDt, firstRowIndex);
-                DataTable trainDt = seasonDt.AsEnumerable().Where(item => int.Parse(item["TempIndex"].ToString()) <= (seasonDt.Rows.Count * testDataPercentage) + firstRowIndex).CopyToDataTable();
-                trainData.Merge(trainDt);
-                DataTable testDt = seasonDt.AsEnumerable().Where(item => int.Parse(item["TempIndex"].ToString()) > (seasonDt.Rows.Count * testDataPercentage) + firstRowIndex).CopyToDataTable();
-                testData.Merge(testDt);
+
+
+                //測試資料百分比
+                double testDataPercentage = double.Parse(txt_TestPercentage.Text);
+                dt.Columns.Add("TempIndex");
+
+                trainData = dt.Clone();
+                testData = dt.Clone();
+                trainData.TableName = "Train";
+                testData.TableName = "Test";
+
+
+                List<string> seasonList = new List<string>();
+                seasonList.Add("Spring");
+                seasonList.Add("Summer");
+                seasonList.Add("Fall");
+                seasonList.Add("Winter");
+                int rowIndex = 1;
+                foreach (string season in seasonList)
+                {
+                    int firstRowIndex = rowIndex;
+                    DataTable seasonDt = dt.AsEnumerable().Where(item => item["Season"].ToString().Equals(season)).CopyToDataTable();
+                    rowIndex = SetRowIndex(seasonDt, firstRowIndex);
+                    DataTable trainDt = seasonDt.AsEnumerable().Where(item => int.Parse(item["TempIndex"].ToString()) <= (seasonDt.Rows.Count * testDataPercentage) + firstRowIndex).CopyToDataTable();
+                    trainData.Merge(trainDt);
+                    DataTable testDt = seasonDt.AsEnumerable().Where(item => int.Parse(item["TempIndex"].ToString()) > (seasonDt.Rows.Count * testDataPercentage) + firstRowIndex).CopyToDataTable();
+                    testData.Merge(testDt);
+                }
+
+                trainData.Columns.Remove("Season");
+                testData.Columns.Remove("Season");
+                trainData.Columns.Remove("TempIndex");
+                testData.Columns.Remove("TempIndex");
+
+#if(DEBUG)
+                //testData.WriteXml("TestData");
+                //trainData.WriteXml("TrainData");
+#endif
             }
-
-            trainData.Columns.Remove("Season");
-            testData.Columns.Remove("Season");
-            trainData.Columns.Remove("TempIndex");
-            testData.Columns.Remove("TempIndex");
-
             #endregion
 
 
@@ -102,12 +133,18 @@ namespace AisAlgorithm
             //取得分群的設定
             if (GetClusteringSetting(out setting))
             {
-                //建立分群器
-                Clustering clustering = new Clustering(setting);
+                Dictionary<int, GroupInfo> groupData = new Dictionary<int, GroupInfo>(); ;
+                HasData = false;
 
-                //分群結果
-                Dictionary<int, GroupInfo> groupData = clustering.DoClustering(trainData, 3);
+                if (!HasData)
+                {
+                    //建立分群器
+                    Clustering clustering = new Clustering(setting);
 
+                    //分群結果
+                    groupData = clustering.DoClustering(trainData, 3);
+
+                }
                 //預測
                 Forecasting(testData, groupData);
             }
@@ -275,13 +312,14 @@ namespace AisAlgorithm
 
             //記錄結果
             DataTable result = new DataTable();
+            result.Columns.Add("RowIndex");
             result.Columns.Add("OrginalValue");
             result.Columns.Add("TargetValue");
             result.Columns.Add("ForecastValue");
 
 
             double electricityValue = double.MinValue;
-            PearsonDistence predictionDis = new PearsonDistence(0);
+            PearsonDistence predictionDis = new PearsonDistence(-1.1);
             //EuclideanDistence predictionDis = new EuclideanDistence(0);
 
             double similarityValue = double.MinValue;
@@ -307,7 +345,7 @@ namespace AisAlgorithm
                 showData.ImportRow(dr);
 #endif
 
-                if (count > predictionCount)
+                if (predictionCount > 0 && count > predictionCount)
                 {
                     break;
                 }
@@ -370,16 +408,16 @@ namespace AisAlgorithm
                         }
                         groupAvg["RowIndex"] = "GroupID:" + item.Key;
                         showData.Rows.Add(groupAvg);
-                        DataRow groupCalculate = showData.NewRow();
-                        foreach (DataColumn col in testData.Columns)
-                        {
-                            if (item.Value.ColCaculate.ContainsKey(col.ColumnName))
-                            {
-                                groupCalculate[col.ColumnName] = item.Value.ColCaculate[col.ColumnName];
-                            }
-                        }
-                        groupCalculate["RowIndex"] = "GroupID:" + item.Key;
-                        showData.Rows.Add(groupCalculate);
+                        //DataRow groupCalculate = showData.NewRow();
+                        //foreach (DataColumn col in testData.Columns)
+                        //{
+                        //    if (item.Value.ColCaculate.ContainsKey(col.ColumnName))
+                        //    {
+                        //        groupCalculate[col.ColumnName] = item.Value.ColCaculate[col.ColumnName];
+                        //    }
+                        //}
+                        //groupCalculate["RowIndex"] = "GroupID:" + item.Key;
+                        //showData.Rows.Add(groupCalculate);
 #endif
 
 
@@ -407,13 +445,14 @@ namespace AisAlgorithm
                                 }
 
 #if(DEBUG)
-                                DataRow showRow = showData.NewRow();
-                                foreach (DataColumn col in testData.Columns)
-                                {
-                                    showRow[col.ColumnName] = gDr[col.ColumnName];
-                                }
-                                showRow["Similarity"] = similarityValue;
-                                showData.Rows.Add(showRow);
+                                //印內容
+                                //DataRow showRow = showData.NewRow();
+                                //foreach (DataColumn col in testData.Columns)
+                                //{
+                                //    showRow[col.ColumnName] = gDr[col.ColumnName];
+                                //}
+                                //showRow["Similarity"] = similarityValue;
+                                //showData.Rows.Add(showRow);
 #endif
 
                             }
@@ -429,12 +468,13 @@ namespace AisAlgorithm
                             similarityGroupData[item.Key][i] = (similarityGroupData[item.Key][i]) / (sumSimilarity);
                         }
 #if(DEBUG)
-                        int sCount = similarityGroupData[item.Key].Count - 1;
-                        for (int i = showData.Rows.Count - 1; i > showData.Rows.Count - 1 - similarityGroupData[item.Key].Count; i--)
-                        {
-                            showData.Rows[i]["SimilarityNor"] = similarityGroupData[item.Key][sCount];
-                            sCount--;
-                        }
+                        //印內容
+                        //int sCount = similarityGroupData[item.Key].Count - 1;
+                        //for (int i = showData.Rows.Count - 1; i > showData.Rows.Count - 1 - similarityGroupData[item.Key].Count; i--)
+                        //{
+                        //    showData.Rows[i]["SimilarityNor"] = similarityGroupData[item.Key][sCount];
+                        //    sCount--;
+                        //}
 #endif
                         double similarityTemp = 0;
                         for (int i = 0; i < similarityGroupData[item.Key].Count; i++)
@@ -443,16 +483,17 @@ namespace AisAlgorithm
                         }
                         //forecastValue += weight[item.Key] * (item.Value.ColAvg["Target_Kwh"] + ((similarityGroupDataElec[item.Key].Sum()) / similarityGroupData[item.Key].Sum()));
                         forecastValue += weight[item.Key] * (similarityTemp);
-#if(DEBUG)
-                        var sourceRow = showData.AsEnumerable().Where(i => i["RowIndex"].ToString().Equals(dr["RowIndex"].ToString())).FirstOrDefault();
-                        if (sourceRow != null)
-                        {
-                            sourceRow["Similarity"] = forecastValue;
-                        }
-                        showData.Rows.Add(showData.NewRow());
-#endif
                     }
 
+#if(DEBUG)
+                    //寫入該筆的預測結果
+                    var sourceRow = showData.AsEnumerable().Where(i => i["RowIndex"].ToString().Equals(dr["RowIndex"].ToString())).FirstOrDefault();
+                    if (sourceRow != null)
+                    {
+                        sourceRow["Similarity"] = forecastValue;
+                    }
+                    showData.Rows.Add(showData.NewRow());
+#endif
 
                     //抓出目標值
                     double targetValue = double.MinValue;
@@ -465,6 +506,7 @@ namespace AisAlgorithm
                     if (double.TryParse(targetValueStr, out targetValue))
                     {
                         DataRow rDr = result.NewRow();
+                        rDr["RowIndex"] = dr["RowIndex"].ToString();
                         rDr["OrginalValue"] = double.Parse(relValueStr);
                         rDr["ForecastValue"] = (cb_normalization.IsChecked.Value ? forecastValue * (norCol["Rel_kWh"].Max - norCol["Rel_kWh"].Min) + norCol["Rel_kWh"].Min : forecastValue);
                         rDr["TargetValue"] = targetValue;
@@ -472,6 +514,8 @@ namespace AisAlgorithm
                     }
                 }
             }
+
+
 
             //存檔
             SaveToCSV(result, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DateTime.Now.ToString("yyyyMMddHHmmss") + ".csv"));
@@ -499,13 +543,13 @@ namespace AisAlgorithm
         {
             bool result = true;
             forecastSetting = new ClusteringSetting();
-            //forecastSetting.GroupCenter = GroupCenter.Avg;
-            //forecastSetting.SimilarityMethod = SimilarityMethod.HammingDistence;
-            //forecastSetting.ThresholdList.Add(0);
-            //forecastSetting.ThresholdList.Add(5);            
             forecastSetting.GroupCenter = GroupCenter.Avg;
-            forecastSetting.SimilarityMethod = SimilarityMethod.PearsonDistence;
-            forecastSetting.ThresholdList.Add(0.95);
+            forecastSetting.SimilarityMethod = SimilarityMethod.HammingDistence;
+            forecastSetting.ThresholdList.Add(0);
+            forecastSetting.ThresholdList.Add(10);
+            //forecastSetting.GroupCenter = GroupCenter.Avg;
+            //forecastSetting.SimilarityMethod = SimilarityMethod.PearsonDistence;
+            //forecastSetting.ThresholdList.Add(0.95);
 
             return result;
         }
@@ -627,6 +671,52 @@ namespace AisAlgorithm
             animFadeIn.Duration = new Duration(TimeSpan.FromSeconds(2));
             setting.BeginAnimation(Window.OpacityProperty, animFadeIn);
             setting.ShowDialog();
+        }
+
+        public static bool ObjectSerialize(string fileName, object obj, int backupSec = 3600)
+        {
+            bool result = false;
+            try
+            {
+                DateTime fileUpdateTime = DateTime.MinValue;
+                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+                if (File.Exists(filePath))
+                {
+                    fileUpdateTime = File.GetLastWriteTime(filePath);
+                }
+                if (DateTime.Now.Subtract(fileUpdateTime).TotalSeconds > backupSec)
+                {
+                    Polenter.Serialization.SharpSerializer serializer = new Polenter.Serialization.SharpSerializer();
+                    serializer.Serialize(obj, filePath);
+                    //File.WriteAllText(filePath, EncryptDecrypt.Encrypt(File.ReadAllText(filePath)));
+                }
+                result = true;
+            }
+            catch (Exception e)
+            {
+            }
+            return result;
+        }
+
+        public static bool ObjectDeserialize(string fileName, out object obj)
+        {
+            bool result = false;
+            obj = null;
+            try
+            {
+                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+                if (File.Exists(filePath))
+                {
+                    //File.WriteAllText(filePath + ".temp", EncryptDecrypt.Decrypt(File.ReadAllText(filePath)));
+                    Polenter.Serialization.SharpSerializer serializer = new Polenter.Serialization.SharpSerializer();
+                    obj = serializer.Deserialize(filePath);
+                    result = true;
+                }
+            }
+            catch (Exception e)
+            {
+            }
+            return result;
         }
     }
 }

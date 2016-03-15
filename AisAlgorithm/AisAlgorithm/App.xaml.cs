@@ -18,5 +18,7 @@ namespace AisAlgorithm
             //https://www.youtube.com/watch?v=PUvZ5wVrZ4s
             base.OnStartup(e);
         }
+
+        public static bool CompareTarget = true;
     }
 }

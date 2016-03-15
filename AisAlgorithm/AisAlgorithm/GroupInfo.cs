@@ -14,6 +14,11 @@ namespace AisAlgorithm
         {
             m_center = _center;
         }
+
+        public GroupInfo()
+        {
+            m_center = GroupCenter.First;
+        }
         public int GroupId { get; set; }
 
         private List<DataRow> _row = new List<DataRow>();

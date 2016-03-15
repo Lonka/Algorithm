@@ -22,14 +22,14 @@ namespace AisAlgorithm
             similarityValue = double.MinValue;
             foreach (DataColumn dc in targetDr.Table.Columns)
             {
-                if (dc.ColumnName != "GroupId"
+                if (dc.ColumnName != "GroupId" && dc.ColumnName != "RowIndex"
                     && double.TryParse(targetDr[dc.ColumnName].ToString(), out orginalValue))
                 {
                     colCaculate[dc.ColumnName] = orginalValue;
                 }
             }
 
-            return colCaculate.Count == dr.Table.Columns.Count && Caculate(colCaculate, dr, out similarityValue);
+            return colCaculate.Count == dr.Table.Columns.Count-1 && Caculate(colCaculate, dr, out similarityValue);
         }
         public bool Caculate(Dictionary<string, double> colCaculate, System.Data.DataRow dr, out double similarityValue)
         {
@@ -38,9 +38,10 @@ namespace AisAlgorithm
             double selfAvg = 0;
             double orginalValue = double.MinValue;
             Dictionary<string, double> selfValue = new Dictionary<string, double>();
+            int avgCount = 0;
             foreach (KeyValuePair<string, double> col in colCaculate)
             {
-                if (col.Key == "RowIndex" || col.Key == "Target_Kwh")
+                if (!App.CompareTarget && col.Key == "Target_Kwh")
                 {
                     continue;
                 }
@@ -49,14 +50,15 @@ namespace AisAlgorithm
                 {
                     selfValue[col.Key] = orginalValue;
                     selfAvg += orginalValue;
+                    avgCount++;
                 }
                 else
                 {
                     return false;
                 }
             }
-            groupAvg = groupAvg / (colCaculate.Count - 2);
-            selfAvg = selfAvg / (colCaculate.Count - 2);
+            groupAvg = groupAvg / avgCount;
+            selfAvg = selfAvg / avgCount;
 
             double numerator = 0;
             double denominatorLeft = 0;
@@ -75,7 +77,10 @@ namespace AisAlgorithm
 
             //similarityValue = (numerator / (Math.Sqrt(denominatorLeft) + Math.Sqrt(denominatorRight))) / (colCaculate.Count-2);
             double similarity = (numerator / (Math.Sqrt(denominatorLeft * denominatorRight)));
-
+            if (double.IsNaN(similarity))
+            {
+                similarity = 0;
+            }
             if (similarity > similarityThreshold)
             {
                 similarityValue = similarity;

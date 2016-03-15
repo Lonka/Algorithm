@@ -24,7 +24,7 @@ namespace AisAlgorithm
             int colOverThreshold = 0;
             foreach (KeyValuePair<string, double> col in colCaculate)
             {
-                if (col.Key.Equals("Target_Kwh"))
+                if (!App.CompareTarget && col.Key.Equals("Target_Kwh"))
                 {
                     continue;
                 }

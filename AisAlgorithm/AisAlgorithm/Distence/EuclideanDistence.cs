@@ -39,7 +39,7 @@ namespace AisAlgorithm
             Dictionary<string, double> tempValues = new Dictionary<string, double>();
             foreach (KeyValuePair<string, double> col in colCaculate)
             {
-                if (col.Key.Equals("Target_Kwh"))
+                if (!App.CompareTarget && col.Key.Equals("Target_Kwh"))
                 {
                     continue;
                 }
@@ -54,7 +54,7 @@ namespace AisAlgorithm
                 double distince = 0;
                 foreach (KeyValuePair<string, double> col in colCaculate)
                 {
-                    if (col.Key.Equals("Target_Kwh"))
+                    if (!App.CompareTarget && col.Key.Equals("Target_Kwh"))
                     {
                         continue;
                     }

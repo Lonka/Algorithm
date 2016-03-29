@@ -1,0 +1,50 @@
+=== Run information ===
+
+Scheme:weka.classifiers.functions.MultilayerPerceptron -L 0.3 -M 0.2 -N 500 -V 0 -S 0 -E 20 -H a
+Relation:     Data-weka.filters.unsupervised.attribute.Remove-R1-2,4,6,9-15,17
+Instances:    19405
+Attributes:   5
+              Rel_kWh
+              Rel_Air_kWh
+              Avg_Tp
+              Avg_Humidity
+              Target_Kwh
+Test mode:split 80.0% train, remainder test
+
+=== Classifier model (full training set) ===
+
+Linear Node 0
+    Inputs    Weights
+    Threshold    -0.27350468077823575
+    Node 1    0.9861601033560788
+    Node 2    -1.0775459088088926
+Sigmoid Node 1
+    Inputs    Weights
+    Threshold    -0.35654680052588816
+    Attrib Rel_kWh    3.5994329737970236
+    Attrib Rel_Air_kWh    0.0012312949071284895
+    Attrib Avg_Tp    0.23758676088803868
+    Attrib Avg_Humidity    0.00774650629427803
+Sigmoid Node 2
+    Inputs    Weights
+    Threshold    -2.631864646339749
+    Attrib Rel_kWh    -4.01856758333235
+    Attrib Rel_Air_kWh    0.5224570030553325
+    Attrib Avg_Tp    0.0015224657091374395
+    Attrib Avg_Humidity    0.012637329244207175
+Class 
+    Input
+    Node 0
+
+
+Time taken to build model: 8.71 seconds
+
+=== Evaluation on test split ===
+=== Summary ===
+
+Correlation coefficient                  0.9869
+Mean absolute error                      3.1222
+Root mean squared error                  4.3145
+Relative absolute error                 14.7773 %
+Root relative squared error             17.0723 %
+Total Number of Instances             3881     

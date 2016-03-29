@@ -32,8 +32,8 @@ namespace AisAlgorithm
             items1.Add(new CheckBoxListItem(false, "即時空調用電", "Real_Air_kWh"));
             items1.Add(new CheckBoxListItem(true, "相對空調用電", "Rel_Air_kWh"));
             items1.Add(new CheckBoxListItem(false, "平均日照", "Avg_Light"));
-            items1.Add(new CheckBoxListItem(false, "平均氣溫", "Avg_Tp"));
-            items1.Add(new CheckBoxListItem(false, "平均溼度", "Avg_Humidity"));
+            items1.Add(new CheckBoxListItem(true, "平均氣溫", "Avg_Tp"));
+            items1.Add(new CheckBoxListItem(true, "平均溼度", "Avg_Humidity"));
             items1.Add(new CheckBoxListItem(false, "風向", "Wind_Direction"));
             items1.Add(new CheckBoxListItem(false, "風速", "Wind_Speed"));
             items1.Add(new CheckBoxListItem(false, "平均舒適度", "Avg_Comfort"));
@@ -394,7 +394,7 @@ namespace AisAlgorithm
                     #endregion
 
                     Dictionary<int, List<double>> similarityGroupDataElec = new Dictionary<int, List<double>>();
-                    double forecastValue = 0;
+                    double forecastValue = electricityValue;
                     foreach (KeyValuePair<int, GroupInfo> item in forecastingGroupData)
                     {
 #if(DEBUG)
@@ -479,10 +479,11 @@ namespace AisAlgorithm
                         double similarityTemp = 0;
                         for (int i = 0; i < similarityGroupData[item.Key].Count; i++)
                         {
-                            similarityTemp += similarityGroupData[item.Key][i] * similarityGroupDataElec[item.Key][i];
+                            similarityTemp += similarityGroupData[item.Key][i] * (similarityGroupDataElec[item.Key][i] - electricityValue);
                         }
+                        forecastValue += weight[item.Key] * similarityTemp / similarityGroupData[item.Key].Sum();
                         //forecastValue += weight[item.Key] * (item.Value.ColAvg["Target_Kwh"] + ((similarityGroupDataElec[item.Key].Sum()) / similarityGroupData[item.Key].Sum()));
-                        forecastValue += weight[item.Key] * (similarityTemp);
+                        //forecastValue += weight[item.Key] * (similarityTemp);
                     }
 
 #if(DEBUG)

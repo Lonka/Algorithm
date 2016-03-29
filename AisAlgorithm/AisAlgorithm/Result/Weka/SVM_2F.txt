@@ -1,0 +1,35 @@
+=== Run information ===
+
+Scheme:weka.classifiers.functions.SMOreg -C 1.0 -N 0 -I "weka.classifiers.functions.supportVector.RegSMOImproved -L 0.001 -W 1 -P 1.0E-12 -T 0.001 -V" -K "weka.classifiers.functions.supportVector.PolyKernel -C 250007 -E 1.0"
+Relation:     Data-weka.filters.unsupervised.attribute.Remove-R1-2,4,6-15,17
+Instances:    19405
+Attributes:   3
+              Rel_kWh
+              Rel_Air_kWh
+              Target_Kwh
+Test mode:split 80.0% train, remainder test
+
+=== Classifier model (full training set) ===
+
+SMOreg
+
+weights (not support vectors):
+ +       1.0952 * (normalized) Rel_kWh
+ -       0.0062 * (normalized) Rel_Air_kWh
+ +       0.0006
+
+
+
+Number of kernel evaluations: 1900645912 (9.877% cached)
+
+Time taken to build model: 393.8 seconds
+
+=== Evaluation on test split ===
+=== Summary ===
+
+Correlation coefficient                  0.9861
+Mean absolute error                      2.7879
+Root mean squared error                  4.214 
+Relative absolute error                 13.1947 %
+Root relative squared error             16.6744 %
+Total Number of Instances             3881     

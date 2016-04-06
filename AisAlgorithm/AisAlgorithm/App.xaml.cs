@@ -19,6 +19,6 @@ namespace AisAlgorithm
             base.OnStartup(e);
         }
 
-        public static bool CompareTarget = true;
+        public static bool CompareTarget = false ;
     }
 }

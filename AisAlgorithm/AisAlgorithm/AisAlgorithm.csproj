@@ -56,15 +56,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ClusteringSetting.cs" />
+    <Compile Include="CommonUtil.cs" />
+    <Compile Include="Model\ClusteringSetting.cs" />
     <Compile Include="Distence\EuclideanDistence.cs" />
     <Compile Include="Distence\PearsonDistence.cs" />
-    <Compile Include="GroupCenter.cs" />
-    <Compile Include="GroupInfo.cs" />
+    <Compile Include="Category\GroupCenter.cs" />
+    <Compile Include="Model\GroupInfo.cs" />
     <Compile Include="Distence\HammingDistence.cs" />
     <Compile Include="Distence\ISimilarity.cs" />
-    <Compile Include="MaxMinValue.cs" />
-    <Compile Include="Model\CheckBoxListItem.cs" />
+    <Compile Include="Model\HelfRegion.cs" />
+    <Compile Include="Model\MaxMinValue.cs" />
+    <Compile Include="Model\EnergyColumn.cs" />
     <Compile Include="Model\ElectricityComsumption.cs" />
     <Compile Include="Windows\Setting.xaml.cs">
       <DependentUpon>Setting.xaml</DependentUpon>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AisAlgorithm.Model;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -19,26 +20,45 @@ namespace AisAlgorithm
         private double errorPercentage = 40;
         public bool Caculate(Dictionary<string, double> colCaculate, DataRow dr, out double similarityValue)
         {
+            Model.GroupInfo group = new Model.GroupInfo();
+            group.ColCaculate = colCaculate;
+            return Caculate(group, dr, out similarityValue);
+        }
+
+        public bool Caculate(Model.GroupInfo groupInfo, DataRow dr, out double similarityValue)
+        {
             similarityValue = double.MinValue;
             double newValue = double.MinValue;
             int colOverThreshold = 0;
-            foreach (KeyValuePair<string, double> col in colCaculate)
+            foreach (KeyValuePair<string, double> col in groupInfo.ColCaculate)
             {
                 if (!App.CompareTarget && col.Key.Equals("Target_Kwh"))
                 {
                     continue;
                 }
+
                 if (double.TryParse(dr[col.Key].ToString(), out newValue))
                 {
                     double error = 0;
-                    //http://zh.wikihow.com/%E8%AE%A1%E7%AE%97%E7%99%BE%E5%88%86%E6%AF%94%E5%8F%98%E5%8C%96
-                    if (col.Value == 0)
+                    if (groupInfo.Fuzzy)
                     {
-                        error = Math.Abs(newValue) * 100;
+                        HelfRegion region  = CommonUtil.GetMembershipFunction(newValue, MainWindow.FuzzyCol[col.Key]);
+                        if( region.RegionName != groupInfo.FuzzyValue[col.Key])
+                        {
+                            error = 100;
+                        }
                     }
                     else
                     {
-                        error = Math.Abs((newValue - col.Value) / col.Value) * 100;
+                        //http://zh.wikihow.com/%E8%AE%A1%E7%AE%97%E7%99%BE%E5%88%86%E6%AF%94%E5%8F%98%E5%8C%96
+                        if (col.Value == 0)
+                        {
+                            error = Math.Abs(newValue) * 100;
+                        }
+                        else
+                        {
+                            error = Math.Abs((newValue - col.Value) / col.Value) * 100;
+                        }
                     }
 
                     if (error > errorPercentage)
@@ -54,6 +74,5 @@ namespace AisAlgorithm
             similarityValue = 1;
             return true;
         }
-
     }
 }

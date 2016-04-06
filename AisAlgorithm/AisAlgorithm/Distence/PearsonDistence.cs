@@ -33,13 +33,21 @@ namespace AisAlgorithm
         }
         public bool Caculate(Dictionary<string, double> colCaculate, System.Data.DataRow dr, out double similarityValue)
         {
+            Model.GroupInfo group = new Model.GroupInfo();
+            group.ColCaculate = colCaculate;
+            return Caculate(group, dr, out similarityValue);
+        }
+
+
+        public bool Caculate(Model.GroupInfo groupInfo, DataRow dr, out double similarityValue)
+        {
             similarityValue = double.MinValue;
             double groupAvg = 0;
             double selfAvg = 0;
             double orginalValue = double.MinValue;
             Dictionary<string, double> selfValue = new Dictionary<string, double>();
             int avgCount = 0;
-            foreach (KeyValuePair<string, double> col in colCaculate)
+            foreach (KeyValuePair<string, double> col in groupInfo.ColCaculate)
             {
                 if (!App.CompareTarget && col.Key == "Target_Kwh")
                 {
@@ -63,7 +71,7 @@ namespace AisAlgorithm
             double numerator = 0;
             double denominatorLeft = 0;
             double denominatorRight = 0;
-            foreach (KeyValuePair<string, double> col in colCaculate)
+            foreach (KeyValuePair<string, double> col in groupInfo.ColCaculate)
             {
                 if (col.Key == "RowIndex" || col.Key == "Target_Kwh")
                 {
@@ -86,8 +94,7 @@ namespace AisAlgorithm
                 similarityValue = similarity;
                 return true;
             }
-            return false ;
-
+            return false;
         }
     }
 }

@@ -17,12 +17,12 @@
         <Button Name="btn_Setting" Content="Setting" HorizontalAlignment="Left" Margin="143,12,0,0" VerticalAlignment="Top" Width="75" Click="btn_Setting_Click" Visibility="Collapsed"/>
         <GroupBox Header="分群的設定" HorizontalAlignment="Left" Margin="10,84,0,0" VerticalAlignment="Top" Height="294" Width="196">
             <Grid>
-                <RadioButton Name="rb_GroupAvg" Height="23" Width="150" Content="平均"  GroupName="GroupCenter" Margin="95,10,0,239" />
-                <RadioButton Name="rb_GroupFirst" Height="23" Width="150" Content="第一點"  GroupName="GroupCenter" Margin="95,33,0,216" IsChecked="True" />
-                <RadioButton Name="rb_Hamming" Height="23" Width="150" Content="HammingDistence"  IsChecked="True" GroupName="ClusterintMethod" Margin="2,114,32,135" />
-                <RadioButton Name="rb_Eucidean" Height="23" Width="150" Content="EucideanDistence"  GroupName="ClusterintMethod" Margin="2,61,32,188"/>
-                <TextBox Name="txt_EucThreshold" HorizontalAlignment="Left" Height="23" Margin="132,86,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" Width="39"/>
-                <TextBox Name="txt_HamThreshold" HorizontalAlignment="Left" Height="23" Margin="132,135,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="39"/>
+                <RadioButton x:Name="rb_GroupAvg" Height="23" Width="150" Content="平均"  GroupName="GroupCenter" Margin="95,10,0,239" />
+                <RadioButton x:Name="rb_GroupFirst" Height="23" Width="150" Content="第一點"  GroupName="GroupCenter" Margin="95,33,0,216" IsChecked="True" />
+                <RadioButton x:Name="rb_Hamming" Height="23" Width="150" Content="HammingDistence"  IsChecked="True" GroupName="ClusterintMethod" Margin="2,114,32,135" />
+                <RadioButton x:Name="rb_Eucidean" Height="23" Width="150" Content="EucideanDistence"  GroupName="ClusterintMethod" Margin="2,61,32,188"/>
+                <TextBox x:Name="txt_EucThreshold" HorizontalAlignment="Left" Height="23" Margin="132,86,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" Width="39"/>
+                <TextBox x:Name="txt_HamThreshold" HorizontalAlignment="Left" Height="23" Margin="132,135,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="39"/>
                 <TextBox x:Name="txt_HamThresholdErrorPercentage" HorizontalAlignment="Left" Height="23" Margin="132,167,0,0" TextWrapping="Wrap" Text="5" VerticalAlignment="Top" Width="39"/>
                 <TextBlock HorizontalAlignment="Left" Margin="55,138,0,0" TextWrapping="Wrap" Text="最多錯誤欄位" VerticalAlignment="Top"/>
                 <TextBlock HorizontalAlignment="Left" Margin="31,170,0,0" TextWrapping="Wrap" Text="每個欄位的錯誤率" VerticalAlignment="Top"/>
@@ -37,16 +37,54 @@
 
         <TextBlock HorizontalAlignment="Left" Margin="63,52,0,0" TextWrapping="Wrap" Text="測試資料比率" VerticalAlignment="Top"/>
         <TextBox x:Name="txt_TestPercentage" HorizontalAlignment="Left" Height="23" Margin="145,49,0,0" TextWrapping="Wrap" Text="0.8" VerticalAlignment="Top" Width="39"/>
-        <ListBox x:Name="lb_Field" HorizontalAlignment="Left" Height="252" Margin="223,126,0,0" VerticalAlignment="Top"  Width="150">
+
+        <ListBox x:Name="lb_Field" HorizontalAlignment="Left" Height="262" Margin="223,116,0,0" VerticalAlignment="Top"  Width="167" >
+            <ListBox.Template>
+                <ControlTemplate>
+                    <Border BorderBrush="DarkGray" BorderThickness="2">
+                        <DockPanel LastChildFill="True">
+                            <Grid DockPanel.Dock="Top" Height="25" Background="LightGray"  Margin="0,0,0,5"  >
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"></ColumnDefinition>
+                                    <ColumnDefinition Width="40"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" >欄位</Label>
+                                <Label Grid.Column="1">MF</Label>
+                                <Rectangle VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Fill="DarkGray" Height="1" Grid.ColumnSpan="2"/>
+                            </Grid>
+
+                            <ItemsPresenter></ItemsPresenter>
+                        </DockPanel>
+                    </Border>
+                </ControlTemplate>
+            </ListBox.Template>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <CheckBox Content="{Binding Text}" IsChecked="{Binding Checked}" />
+
+                    <Grid >
+                        <Grid.Resources>
+                            <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"></BooleanToVisibilityConverter>
+                        </Grid.Resources>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"></ColumnDefinition>
+                            <ColumnDefinition Width="40"></ColumnDefinition>
+
+                        </Grid.ColumnDefinitions>
+                        <CheckBox Content="{Binding Text}" Grid.Column="0" IsChecked="{Binding Checked}" Checked="CheckBox_Checked" Unchecked="CheckBox_Checked"  />
+                        <TextBox Text="{Binding MemberFunctionRegion}" Grid.Column="1" Visibility="{Binding Fuzzy,Converter={StaticResource booleanToVisibilityConverter}}" Width="30"   ></TextBox>
+
+                    </Grid>
+
+
+
                 </DataTemplate>
             </ListBox.ItemTemplate>
 
         </ListBox>
+
         <TextBlock HorizontalAlignment="Left" Margin="226,98,0,0" TextWrapping="Wrap" Text="使用的欄位" VerticalAlignment="Top"/>
-        <CheckBox x:Name="cb_normalization" Content="最大最小值正規化" HorizontalAlignment="Left" Margin="226,52,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="cb_normalization" Content="最大最小值正規化"   HorizontalAlignment="Left" Margin="226,52,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="cb_fuzzy" Content="模糊分類" HorizontalAlignment="Left" Margin="226,73,0,0" VerticalAlignment="Top" Checked="cb_fuzzy_Checked" Unchecked="cb_fuzzy_Checked"/>
         <TextBox x:Name="txt_PredictionCount" HorizontalAlignment="Left" Height="23" Margin="145,17,0,0" TextWrapping="Wrap" Text="20" VerticalAlignment="Top" Width="39"/>
         <TextBlock HorizontalAlignment="Left" Margin="87,18,0,0" TextWrapping="Wrap" Text="預測個數" VerticalAlignment="Top"/>
 

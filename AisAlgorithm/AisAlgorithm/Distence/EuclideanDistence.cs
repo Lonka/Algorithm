@@ -34,10 +34,18 @@ namespace AisAlgorithm
         }
         public bool Caculate(Dictionary<string, double> colCaculate, System.Data.DataRow dr, out double similarityValue)
         {
+            Model.GroupInfo group = new Model.GroupInfo();
+            group.ColCaculate = colCaculate;
+            return Caculate(group, dr, out similarityValue);
+        }
+
+
+        public bool Caculate(Model.GroupInfo groupInfo, DataRow dr, out double similarityValue)
+        {
             similarityValue = double.MinValue;
             double orginalValue = double.MinValue;
             Dictionary<string, double> tempValues = new Dictionary<string, double>();
-            foreach (KeyValuePair<string, double> col in colCaculate)
+            foreach (KeyValuePair<string, double> col in groupInfo.ColCaculate)
             {
                 if (!App.CompareTarget && col.Key.Equals("Target_Kwh"))
                 {
@@ -49,10 +57,10 @@ namespace AisAlgorithm
                 }
             }
 
-            if (tempValues.Count == colCaculate.Count -1)
+            if (tempValues.Count == groupInfo.ColCaculate.Count - 1)
             {
                 double distince = 0;
-                foreach (KeyValuePair<string, double> col in colCaculate)
+                foreach (KeyValuePair<string, double> col in groupInfo.ColCaculate)
                 {
                     if (!App.CompareTarget && col.Key.Equals("Target_Kwh"))
                     {
@@ -62,9 +70,9 @@ namespace AisAlgorithm
                 }
                 distince = Math.Sqrt(distince);
                 double similarity = 1;
-                if(distince != 0)
+                if (distince != 0)
                 {
-                    similarity = 1/ distince;
+                    similarity = 1 / distince;
                 }
                 if (similarity > similarityThreshold)
                 {

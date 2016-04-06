@@ -4,6 +4,8 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AisAlgorithm.Model;
+using AisAlgorithm.Category;
 
 namespace AisAlgorithm
 {
@@ -49,8 +51,7 @@ namespace AisAlgorithm
             Dictionary<int, GroupInfo> result = new Dictionary<int, GroupInfo>();
             foreach (KeyValuePair<int,GroupInfo> item in groupData)
             {
-                //TODO 這邊的threshole不應該跟一開始的一樣
-                if (similarity.Caculate(item.Value.ColCaculate, dr, out similarityValue))
+                if (similarity.Caculate(item.Value, dr, out similarityValue))
                 {
                     item.Value.SimilarityValue = similarityValue;
                     result.Add(item.Key, item.Value);
@@ -78,7 +79,7 @@ namespace AisAlgorithm
             foreach (int index in roundIndexs)
             {
                 dt.Rows[index]["GroupId"] = groupId + ",";
-                result[groupId] = new GroupInfo(m_setting.GroupCenter);
+                result[groupId] = new GroupInfo(m_setting.GroupCenter, m_setting.Fuzzy);
                 result[groupId].GroupId = groupId;
                 result[groupId].Add(dt.Rows[index]);
                 groupId++;
@@ -95,7 +96,7 @@ namespace AisAlgorithm
                     foreach (int id in result.Keys)
                     {
                         //相似度符合門檻時就加進去該群(加入多群)
-                        if (similarity.Caculate(result[id].ColCaculate, dr, out similarityValue))
+                        if (similarity.Caculate(result[id], dr, out similarityValue))
                         {
                             isSimilarity = true;
                             dr["GroupId"] += id + ",";
@@ -109,7 +110,7 @@ namespace AisAlgorithm
                     if (!isSimilarity)
                     {
                         dr["GroupId"] += groupId + ",";
-                        result[groupId] = new GroupInfo(m_setting.GroupCenter);
+                        result[groupId] = new GroupInfo(m_setting.GroupCenter,m_setting.Fuzzy);
                         result[groupId].GroupId = groupId;
                         result[groupId].Add(dr);
                         groupId++;

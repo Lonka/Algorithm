@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AisAlgorithm.Model
 {
-    internal class MaxMinValue
+    public class MaxMinValue
     {
         public double Max { get; set; }
 

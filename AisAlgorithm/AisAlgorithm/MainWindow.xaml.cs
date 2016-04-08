@@ -22,46 +22,120 @@ namespace AisAlgorithm
         //用漢明分群應該比較合理
         private int PredictionCount;
         private DataTable SourceData;
-        private List<EnergyColumn> Items = null;
-        private Dictionary<string, MaxMinValue> NorCol;
-        public static Dictionary<string, List<HelfRegion>> FuzzyCol;
 
         public MainWindow()
         {
             InitializeComponent();
-            NorCol = new Dictionary<string, MaxMinValue>();
-            FuzzyCol = new Dictionary<string, List<HelfRegion>>();
-            Items = new List<EnergyColumn>();
-            Items.Add(new EnergyColumn(true, "相對總用電", "Rel_kWh", 3));
-            Items.Add(new EnergyColumn(true, "相對空調用電", "Rel_Air_kWh", 3));
-            Items.Add(new EnergyColumn(true, "平均氣溫", "Avg_Tp", 3));
-            Items.Add(new EnergyColumn(true, "平均溼度", "Avg_Humidity", 3));
-            Items.Add(new EnergyColumn(false, "即時總用電", "Real_kWh", 3));
-            Items.Add(new EnergyColumn(false, "即時空調用電", "Real_Air_kWh", 3));
-            Items.Add(new EnergyColumn(false, "平均日照", "Avg_Light", 3));
-            Items.Add(new EnergyColumn(false, "風向", "Wind_Direction", 3));
-            Items.Add(new EnergyColumn(false, "風速", "Wind_Speed", 3));
-            Items.Add(new EnergyColumn(false, "平均舒適度", "Avg_Comfort", 3));
+            Parameter.GetInstance().NorCol = new Dictionary<string, MaxMinValue>();
+            Parameter.GetInstance().FuzzyCol = new Dictionary<string, List<HelfRegion>>();
+            Parameter.GetInstance().Items = new List<EnergyColumn>();
+            Parameter.GetInstance().Items.Add(new EnergyColumn(true, "相對總用電", "Rel_kWh", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(true, "相對空調用電", "Rel_Air_kWh", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(true, "平均氣溫", "Avg_Tp", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(false, "平均溼度", "Avg_Humidity", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(false, "即時總用電", "Real_kWh", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(false, "即時空調用電", "Real_Air_kWh", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(true, "平均日照", "Avg_Light", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(false, "風向", "Wind_Direction", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(false, "風速", "Wind_Speed", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(false, "平均舒適度", "Avg_Comfort", 3));
             //items1.Add(new CheckBoxListItem(false, "季節", "Season"));
             //items1.Add(new CheckBoxListItem(false, "週別", "Week"));
             //items1.Add(new CheckBoxListItem(false, "是否為假日", "Is_Holiday"));
             //items1.Add(new CheckBoxListItem(false, "是否為上班時間", "Is_Work"));
-            Items.Add(new EnergyColumn(true, "下個15分鐘的用電", "Target_Kwh", 3));
+            Parameter.GetInstance().Items.Add(new EnergyColumn(true, "下個15分鐘的用電", "Target_Kwh", 3));
 
-            cb_fuzzy.IsChecked = true;
-
-            foreach (EnergyColumn cb in Items)
+            //cb_fuzzy.IsChecked = true;
+            //cb_normalization.IsChecked = true;
+            foreach (EnergyColumn cb in Parameter.GetInstance().Items)
             {
                 cb.IsFuzzy = cb_fuzzy.IsChecked.Value;
             }
 
-            lb_Field.ItemsSource = Items;
+            lb_Field.ItemsSource = Parameter.GetInstance().Items;
         }
 
         private void btn_Execute_Click(object sender, RoutedEventArgs e)
         {
-            NorCol = new Dictionary<string, MaxMinValue>();
-            FuzzyCol = new Dictionary<string, List<HelfRegion>>();
+
+            //GroupCenter gcc = GroupCenter.Avg;
+            //GroupCenter ffc = GroupCenter.Avg;
+            //for (int cc = 0; cc <= 1; cc++)
+            //{
+            //    if (cc == 1)
+            //    {
+            //        gcc = GroupCenter.First;
+            //    }
+            //    for (int fc = 0; fc <= 1; fc++)
+            //    {
+            //        if (fc == 1)
+            //        {
+            //            ffc = GroupCenter.First;
+            //        }
+            //        else
+            //        {
+            //            ffc = GroupCenter.Avg;
+            //        }
+            //for (int i = 3; i <= 10; i++)
+            //{
+            //    for (int j = i + 2; j <= i + 6; j++)
+            //    {
+            //        Execute(GroupCenter.First, GroupCenter.Avg, i, j);
+            //    }
+            //}
+            //    }
+            //}
+
+            // Execute(GroupCenter.First, GroupCenter.Avg,10, 10);
+
+            //Execute(GroupCenter.First, GroupCenter.Avg, 0.03, 0.03);
+
+            Execute(GroupCenter.First, GroupCenter.Avg, 2, 3);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 3, 7);
+            // Execute(GroupCenter.First, GroupCenter.Avg, 3, 8);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 4, 6);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 4, 7);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 4, 8);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 4, 9);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 5, 2);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 5, 3);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 5, 4);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 1, 2);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 2, 3);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 3, 5);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 5, 10);
+
+            //Execute(GroupCenter.First, GroupCenter.Avg, 1, 2);
+
+            //GOOD
+            //Execute(GroupCenter.First, GroupCenter.Avg, 2, 3);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 2,5);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 3, 6);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 4, 7);
+
+
+            //Execute(GroupCenter.First, GroupCenter.Avg, 5, 8);
+
+            //Execute(GroupCenter.First, GroupCenter.First, 2, 3);
+            //Execute(GroupCenter.Avg, GroupCenter.Avg, 2, 3);
+            //Execute(GroupCenter.Avg, GroupCenter.First, 2, 3);
+
+
+            //for (int i = 1; i <= 5; i++)
+            //{
+            //    for (int j = 1; j <= 5; j++)
+            //    {
+            //        Execute(i, j);
+            //    }
+            //}
+            MessageBox.Show("OK");
+
+        }
+
+        private void Execute(GroupCenter clusterCenter, GroupCenter forecastCenter, double clusterIndex, double forecastIndex)
+        {
+            Parameter.GetInstance().NorCol = new Dictionary<string, MaxMinValue>();
+            Parameter.GetInstance().FuzzyCol = new Dictionary<string, List<HelfRegion>>();
             bool HasData = false;
             DataTable trainData = new DataTable();
             trainData.TableName = "Train";
@@ -130,7 +204,7 @@ namespace AisAlgorithm
 
             ClusteringSetting setting;
             //取得分群的設定
-            if (GetClusteringSetting(out setting))
+            if (GetClusteringSetting(clusterCenter, clusterIndex, out setting))
             {
                 Dictionary<int, GroupInfo> groupData = new Dictionary<int, GroupInfo>(); ;
                 HasData = false;
@@ -145,10 +219,8 @@ namespace AisAlgorithm
 
                 }
                 //預測
-                Forecasting(testData, groupData);
+                Forecasting(clusterCenter, forecastCenter, clusterIndex, forecastIndex, testData, groupData);
             }
-
-
         }
 
 
@@ -167,7 +239,7 @@ namespace AisAlgorithm
         private DataTable RemoveColumns(DataTable dt)
         {
             List<string> removeColumns = new List<string>();
-            removeColumns.Add("Date");
+            //removeColumns.Add("Date");
             removeColumns.Add("Split");
             //removeColumns.Add("Season");
             removeColumns.Add("Week");
@@ -197,12 +269,17 @@ namespace AisAlgorithm
         private DataTable Normalization(DataTable dt)
         {
             DataTable result = dt;
+            Dictionary<string, MaxMinValue> norCol;
+
             if (cb_normalization.IsChecked.Value)
             {
-                Dictionary<string, MaxMinValue> norCol;
                 result = CommonUtil.Normalization(dt, out norCol);
-                NorCol = norCol;
             }
+            else
+            {
+                CommonUtil.SetMaxMin(dt, out norCol);
+            }
+            Parameter.GetInstance().NorCol = norCol;
             return result;
         }
 
@@ -255,11 +332,11 @@ namespace AisAlgorithm
                     {
                         continue;
                     }
-                    var collection = Items.Where(item => item.Value.Equals(column.ColumnName));
+                    var collection = Parameter.GetInstance().Items.Where(item => item.Value.Equals(column.ColumnName));
                     if (collection.Any())
                     {
                         List<HelfRegion> helfRegion = CommonUtil.GenHelfRegion(collection.FirstOrDefault(), dt);
-                        FuzzyCol.Add(column.ColumnName, helfRegion);
+                        Parameter.GetInstance().FuzzyCol.Add(column.ColumnName, helfRegion);
                     }
                 }
             }
@@ -268,7 +345,7 @@ namespace AisAlgorithm
 
         #region Forecast
 
-        private void Forecasting(DataTable testData, Dictionary<int, GroupInfo> groupData)
+        private void Forecasting(GroupCenter clusterCenter, GroupCenter forecastCenter, double clusterIndex, double forecastIndex, DataTable testData, Dictionary<int, GroupInfo> groupData)
         {
             PredictionCount = int.Parse(txt_PredictionCount.Text);
 
@@ -281,12 +358,23 @@ namespace AisAlgorithm
 
 
             double electricityValue = double.MinValue;
-            PearsonDistence predictionDis = new PearsonDistence(-1.1);
+            List<double> forecastParams = new List<double>();
+            forecastParams.Add(-1.1);
+            forecastParams.Add(0);
+
+            PearsonDistence predictionPearsonDis = new PearsonDistence(forecastParams);
+
+            forecastParams = new List<double>();
+            forecastParams.Add(99);
+            forecastParams.Add(clusterIndex);
+            forecastParams.Add(0);
+            HammingDistence predictionHammingDis = new HammingDistence(forecastParams);
+
             //EuclideanDistence predictionDis = new EuclideanDistence(0);
 
             double similarityValue = double.MinValue;
             ClusteringSetting forecastSetting;
-            if (!GetForecastClusteringSetting(out forecastSetting))
+            if (!GetForecastClusteringSetting(forecastCenter, forecastIndex, out forecastSetting))
             {
                 return;
             }
@@ -299,10 +387,11 @@ namespace AisAlgorithm
             showData.Columns.Add("Similarity");
             showData.Columns.Add("SimilarityNor");
 #endif
-
+            TimeSpan targetTime;
+            //testData.Columns.Remove("Target_Kwh");
             foreach (DataRow dr in testData.Rows)
             {
-
+                targetTime = DateTime.Parse(dr["Date"].ToString()).TimeOfDay;
 #if(DEBUG)
                 showData.ImportRow(dr);
 #endif
@@ -317,6 +406,15 @@ namespace AisAlgorithm
 
                     //找出與該點相似的群
                     Dictionary<int, GroupInfo> forecastingGroupData = clustering.FilterGroup(dr, groupData);
+                    //double tempForecastIndex = forecastIndex;
+                    //while (forecastingGroupData.Count == 0)//&& tempForecastIndex <= forecastIndex + 1)
+                    //{
+                    //    tempForecastIndex++;
+                    //    ClusteringSetting tempForecastSetting;
+                    //    GetForecastClusteringSetting(forecastCenter, tempForecastIndex, out tempForecastSetting);
+                    //    Clustering TempClustering = new Clustering(tempForecastSetting);
+                    //    forecastingGroupData = TempClustering.FilterGroup(dr, groupData);
+                    //}
 
                     //計算出該點與每個群的相似度
                     //todo weight應該可以再調整
@@ -327,9 +425,26 @@ namespace AisAlgorithm
 
 
                     Dictionary<int, List<double>> similarityGroupDataElec = new Dictionary<int, List<double>>();
-                    double forecastValue = electricityValue;
+                    double forecastValue = forecastingGroupData.Count == 0 ? -66666 : electricityValue;
+                    //double forecastValue = 0;
+
+                    double forecastValueTemp = 0;
+                    List<double> similarityData = new List<double>();
                     foreach (KeyValuePair<int, GroupInfo> item in forecastingGroupData)
                     {
+
+                        //var dateColl =item.Value.Rows.Where(arg =>
+                        //    {
+                        //        return DateTime.Parse(arg["Date"].ToString()).TimeOfDay.TotalMinutes >= targetTime.TotalMinutes - 15 && DateTime.Parse(arg["Date"].ToString()).TimeOfDay.TotalMinutes <= targetTime.TotalMinutes + 15;
+                        //    });
+                        //if (!dateColl.Any())
+                        //{
+                        //    forecastValueTemp = item.Value.ColAvg["Target_Kwh"];
+                        //}
+                        //else
+                        //{
+                        //    forecastValueTemp = dateColl.Average(arg => double.Parse(arg["Target_Kwh"].ToString()));
+                        //}
 #if(DEBUG)
                         DataRow groupAvg = showData.NewRow();
                         foreach (DataColumn col in testData.Columns)
@@ -357,8 +472,43 @@ namespace AisAlgorithm
                         //該點於該群的每一點相似度
                         foreach (DataRow gDr in item.Value.Rows)
                         {
-                            if (predictionDis.Caculate(gDr, dr, out similarityValue))
+                            TimeSpan currentTime = DateTime.Parse(gDr["Date"].ToString()).TimeOfDay;
+                            //bool isCurrent = (currentTime.TotalMinutes >= targetTime.TotalMinutes - 15 && currentTime.TotalMinutes <= targetTime.TotalMinutes + 15);
+                            if (predictionHammingDis.Caculate(gDr, dr, out similarityValue))
+                            //if (predictionPearsonDis.Caculate(gDr, dr, out similarityValue))
                             {
+                                //for pearson
+                                //if(similarityValue < 0.9995)
+                                //{
+                                //    similarityValue = 0;
+                                //}
+
+                                //for hamming
+                                if (similarityValue < 1 && similarityValue > 0)
+                                {
+                                    //if (!isCurrent)
+                                    //{
+                                    similarityValue = 0;
+                                    //}
+                                }
+                                else if (similarityValue == 1)
+                                {
+                                    //if (isCurrent)
+                                    //{
+                                    //    similarityValue = similarityValue * 1;
+                                    //}
+                                    //else
+                                    //{
+                                    similarityValue = similarityValue * 1;
+                                    //}
+                                }
+                                else if (similarityValue == 0)// && isCurrent)
+                                {
+                                    //similarityValue = 1;
+                                }
+
+
+
                                 if (!similarityGroupData.ContainsKey(item.Key))
                                 {
                                     similarityGroupData.Add(item.Key, new List<double>());
@@ -369,23 +519,31 @@ namespace AisAlgorithm
                                 }
 
                                 //similarityGroupData[item.Key].Add(similarityValue);
-                                double elec;
-                                if (double.TryParse(gDr["Target_Kwh"].ToString(), out elec))
+                                if (similarityValue > 0 )//&& isCurrent)
                                 {
-                                    similarityGroupData[item.Key].Add(similarityValue);
+                                    double elec;
+                                    if (double.TryParse(gDr["Target_Kwh"].ToString(), out elec))
+                                    {
+                                        similarityData.Add(elec);
 
-                                    similarityGroupDataElec[item.Key].Add(elec);
+                                        similarityGroupData[item.Key].Add(similarityValue);
+
+                                        similarityGroupDataElec[item.Key].Add(elec);
+                                    }
                                 }
 
 #if(DEBUG)
-                                //印內容
-                                DataRow showRow = showData.NewRow();
-                                foreach (DataColumn col in testData.Columns)
+                                if (similarityValue > 0 )//&& isCurrent)
                                 {
-                                    showRow[col.ColumnName] = gDr[col.ColumnName];
+                                    //印內容
+                                    DataRow showRow = showData.NewRow();
+                                    foreach (DataColumn col in testData.Columns)
+                                    {
+                                        showRow[col.ColumnName] = gDr[col.ColumnName];
+                                    }
+                                    showRow["Similarity"] = similarityValue;
+                                    showData.Rows.Add(showRow);
                                 }
-                                showRow["Similarity"] = similarityValue;
-                                showData.Rows.Add(showRow);
 #endif
 
                             }
@@ -395,30 +553,51 @@ namespace AisAlgorithm
                         //double minSimilarity = similarityGroupData[item.Key].Min();
                         //double maxSimilarity = similarityGroupData[item.Key].Max();
                         double sumSimilarity = similarityGroupData[item.Key].Sum();
-                        for (int i = 0; i < similarityGroupData[item.Key].Count; i++)
-                        {
-                            //similarityGroupData[item.Key][i] = (similarityGroupData[item.Key][i] - minSimilarity) / (maxSimilarity - minSimilarity);
-                            similarityGroupData[item.Key][i] = (similarityGroupData[item.Key][i]) / (sumSimilarity);
-                        }
+                        sumSimilarity = (sumSimilarity == 0 ? 1 : sumSimilarity);
+                        //for (int i = 0; i < similarityGroupData[item.Key].Count; i++)
+                        //{
+                        //    //similarityGroupData[item.Key][i] = (similarityGroupData[item.Key][i] - minSimilarity) / (maxSimilarity - minSimilarity);
+                        //    similarityGroupData[item.Key][i] = (similarityGroupData[item.Key][i]) / (sumSimilarity);
+                        //}
+                        //sumSimilarity = similarityGroupData[item.Key].Sum();
+                        //sumSimilarity = (sumSimilarity == 0 ? 1 : sumSimilarity);
+
 #if(DEBUG)
-                        //印內容
-                        int sCount = similarityGroupData[item.Key].Count - 1;
-                        for (int i = showData.Rows.Count - 1; i > showData.Rows.Count - 1 - similarityGroupData[item.Key].Count; i--)
-                        {
-                            showData.Rows[i]["SimilarityNor"] = similarityGroupData[item.Key][sCount];
-                            sCount--;
-                        }
+                        //印內容 用不到了
+                        //int sCount = similarityGroupData[item.Key].Count - 1;
+                        //for (int i = showData.Rows.Count - 1; i > showData.Rows.Count - 1 - similarityGroupData[item.Key].Count; i--)
+                        //{
+                        //    showData.Rows[i]["SimilarityNor"] = similarityGroupData[item.Key][sCount];
+                        //    sCount--;
+                        //}
 #endif
                         double similarityTemp = 0;
                         for (int i = 0; i < similarityGroupData[item.Key].Count; i++)
                         {
                             similarityTemp += similarityGroupData[item.Key][i] * (similarityGroupDataElec[item.Key][i] - electricityValue);
                         }
-                        forecastValue += weight[item.Key] * similarityTemp / similarityGroupData[item.Key].Sum();
+                        ///forecastValueTemp = forecastValueTemp * weight[item.Key];
+                        ///
+                        forecastValueTemp += weight[item.Key] * (similarityTemp / sumSimilarity);
+
+                        forecastValue += forecastValueTemp;
+
+
                         //forecastValue += weight[item.Key] * (item.Value.ColAvg["Target_Kwh"] + ((similarityGroupDataElec[item.Key].Sum()) / similarityGroupData[item.Key].Sum()));
                         //forecastValue += weight[item.Key] * (similarityTemp);
                     }
 
+
+
+                    //if (similarityData.Count == 0)
+                    //{
+                    //    forecastValue = -66666;
+                    //}
+                    //else
+                    //{
+                    //    forecastValue = similarityData.Average() + forecastValueTemp;
+
+                    //}
 #if(DEBUG)
                     //寫入該筆的預測結果
                     var sourceRow = showData.AsEnumerable().Where(i => i["RowIndex"].ToString().Equals(dr["RowIndex"].ToString())).FirstOrDefault();
@@ -442,22 +621,33 @@ namespace AisAlgorithm
                         DataRow rDr = result.NewRow();
                         rDr["RowIndex"] = dr["RowIndex"].ToString();
                         rDr["OrginalValue"] = double.Parse(relValueStr);
-                        rDr["ForecastValue"] = (cb_normalization.IsChecked.Value ? forecastValue * (NorCol["Rel_kWh"].Max - NorCol["Rel_kWh"].Min) + NorCol["Rel_kWh"].Min : forecastValue);
+                        rDr["ForecastValue"] = (cb_normalization.IsChecked.Value ? forecastValue * (Parameter.GetInstance().NorCol["Rel_kWh"].Max - Parameter.GetInstance().NorCol["Rel_kWh"].Min) + Parameter.GetInstance().NorCol["Rel_kWh"].Min : forecastValue);
                         rDr["TargetValue"] = targetValue;
                         result.Rows.Add(rDr);
                     }
                 }
             }
 
+            var rowCount = result.AsEnumerable().Where(item => double.Parse(item["ForecastValue"].ToString()) > 0).Count();
+            var maeValue = result.AsEnumerable().Where(item => double.Parse(item["ForecastValue"].ToString()) > 0).Sum(item => Math.Abs(double.Parse(item["TargetValue"].ToString()) - double.Parse(item["ForecastValue"].ToString()))) / rowCount;
+            var mseValue = result.AsEnumerable().Where(item => double.Parse(item["ForecastValue"].ToString()) > 0).Sum(item => Math.Pow(double.Parse(item["TargetValue"].ToString()) - double.Parse(item["ForecastValue"].ToString()), 2)) / rowCount;
+            var rmseValue = Math.Sqrt(mseValue);
 
+            DataRow mse = result.NewRow();
+            mse["RowIndex"] = -1;
+            mse["OrginalValue"] = "MAE:" + maeValue;
+            mse["TargetValue"] = "MSE:" + mseValue;
+            mse["ForecastValue"] = "RMSE:" + rmseValue;
+
+            result.Rows.InsertAt(mse, 0);
 
             //存檔
-            SaveToCSV(result, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DateTime.Now.ToString("yyyyMMddHHmmss") + ".csv"));
+            SaveToCSV(result, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + clusterCenter.ToString() + "_" + forecastCenter.ToString() + "_" + rmseValue.ToString("#.###") + "_clu" + clusterIndex + "_fore" + forecastIndex + ".csv"));
 
 #if(DEBUG)
             SaveToCSV(showData, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DateTime.Now.ToString("yyyyMMddHHmmss_Da") + ".csv"));
 #endif
-            MessageBox.Show("OK");
+
 
         }
 
@@ -473,11 +663,11 @@ namespace AisAlgorithm
             return weight;
         }
 
-        private bool GetForecastClusteringSetting(out ClusteringSetting forecastSetting)
+        private bool GetForecastClusteringSetting(GroupCenter forecastCenter, double forecastIndex, out ClusteringSetting forecastSetting)
         {
             bool result = true;
             forecastSetting = new ClusteringSetting();
-            forecastSetting.GroupCenter = GroupCenter.Avg;
+            forecastSetting.GroupCenter = forecastIndex > 0 ? forecastCenter : GroupCenter.Avg;
             forecastSetting.SimilarityMethod = SimilarityMethod.HammingDistence;
             forecastSetting.ThresholdList.Add(0);
             forecastSetting.Fuzzy = cb_fuzzy.IsChecked.Value;
@@ -487,8 +677,10 @@ namespace AisAlgorithm
             }
             else
             {
-                forecastSetting.ThresholdList.Add(10);
+                forecastSetting.ThresholdList.Add(forecastIndex > 0 ? forecastIndex : 10);
             }
+            forecastSetting.ThresholdList.Add(0);
+
             //forecastSetting.GroupCenter = GroupCenter.Avg;
             //forecastSetting.SimilarityMethod = SimilarityMethod.PearsonDistence;
             //forecastSetting.ThresholdList.Add(0.95);
@@ -496,72 +688,91 @@ namespace AisAlgorithm
             return result;
         }
 
-        private bool GetClusteringSetting(out ClusteringSetting setting)
+        private bool GetClusteringSetting(GroupCenter clusterCenter, double clusterIndex, out ClusteringSetting setting)
         {
             bool result = true;
             setting = new ClusteringSetting();
             setting.Fuzzy = cb_fuzzy.IsChecked.Value;
             try
             {
-                if (rb_Hamming.IsChecked.Value)
+                if (clusterIndex > 0)
                 {
+                    setting = new ClusteringSetting();
+                    setting.GroupCenter = clusterCenter;
                     setting.SimilarityMethod = SimilarityMethod.HammingDistence;
-                    double threshold = double.MinValue;
-                    if (double.TryParse(txt_HamThreshold.Text, out threshold))
+                    setting.ThresholdList.Add(0);
+                    setting.Fuzzy = cb_fuzzy.IsChecked.Value;
+                    if (cb_fuzzy.IsChecked.Value)
                     {
-                        setting.ThresholdList.Add(threshold);
+                        setting.ThresholdList.Add(0);
                     }
-                    if (double.TryParse(txt_HamThresholdErrorPercentage.Text, out threshold))
+                    else
                     {
-                        setting.ThresholdList.Add(threshold);
-                    }
-                    if (setting.ThresholdList.Count != 2)
-                    {
-                        result = false;
-                    }
-                }
-                else if (rb_Eucidean.IsChecked.Value)
-                {
-                    setting.SimilarityMethod = SimilarityMethod.EucideanDistence;
-                    double threshold = double.MinValue;
-                    if (double.TryParse(txt_EucThreshold.Text, out threshold))
-                    {
-                        setting.ThresholdList.Add(threshold);
-                    }
-                    if (setting.ThresholdList.Count != 1)
-                    {
-                        result = false;
-                    }
-                }
-                else if (rb_Pearson.IsChecked.Value)
-                {
-                    setting.SimilarityMethod = SimilarityMethod.PearsonDistence;
-                    double threshold = double.MinValue;
-                    if (double.TryParse(txt_PearsonThreshold.Text, out threshold))
-                    {
-                        setting.ThresholdList.Add(threshold);
-                    }
-                    if (setting.ThresholdList.Count != 1)
-                    {
-                        result = false;
+                        setting.ThresholdList.Add(clusterIndex);
                     }
                 }
                 else
                 {
-                    result = false;
-                }
+                    if (rb_Hamming.IsChecked.Value)
+                    {
+                        setting.SimilarityMethod = SimilarityMethod.HammingDistence;
+                        double threshold = double.MinValue;
+                        if (double.TryParse(txt_HamThreshold.Text, out threshold))
+                        {
+                            setting.ThresholdList.Add(threshold);
+                        }
+                        if (double.TryParse(txt_HamThresholdErrorPercentage.Text, out threshold))
+                        {
+                            setting.ThresholdList.Add(threshold);
+                        }
+                        if (setting.ThresholdList.Count != 2)
+                        {
+                            result = false;
+                        }
+                    }
+                    else if (rb_Eucidean.IsChecked.Value)
+                    {
+                        setting.SimilarityMethod = SimilarityMethod.EucideanDistence;
+                        double threshold = double.MinValue;
+                        if (double.TryParse(txt_EucThreshold.Text, out threshold))
+                        {
+                            setting.ThresholdList.Add(threshold);
+                        }
+                        if (setting.ThresholdList.Count != 1)
+                        {
+                            result = false;
+                        }
+                    }
+                    else if (rb_Pearson.IsChecked.Value)
+                    {
+                        setting.SimilarityMethod = SimilarityMethod.PearsonDistence;
+                        double threshold = double.MinValue;
+                        if (double.TryParse(txt_PearsonThreshold.Text, out threshold))
+                        {
+                            setting.ThresholdList.Add(threshold);
+                        }
+                        if (setting.ThresholdList.Count != 1)
+                        {
+                            result = false;
+                        }
+                    }
+                    else
+                    {
+                        result = false;
+                    }
 
-                if (rb_GroupAvg.IsChecked.Value)
-                {
-                    setting.GroupCenter = GroupCenter.Avg;
-                }
-                else if (rb_GroupFirst.IsChecked.Value)
-                {
-                    setting.GroupCenter = GroupCenter.First;
-                }
-                else
-                {
-                    result = false;
+                    if (rb_GroupAvg.IsChecked.Value)
+                    {
+                        setting.GroupCenter = GroupCenter.Avg;
+                    }
+                    else if (rb_GroupFirst.IsChecked.Value)
+                    {
+                        setting.GroupCenter = GroupCenter.First;
+                    }
+                    else
+                    {
+                        result = false;
+                    }
                 }
             }
             catch (Exception e)
@@ -664,7 +875,7 @@ namespace AisAlgorithm
 
         private void cb_fuzzy_Checked(object sender, RoutedEventArgs e)
         {
-            foreach (EnergyColumn cb in Items)
+            foreach (EnergyColumn cb in Parameter.GetInstance().Items)
             {
                 cb.IsFuzzy = cb_fuzzy.IsChecked.Value;
             }

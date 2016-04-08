@@ -26,13 +26,13 @@ namespace AisAlgorithm
             switch (_similarity)
             {
                 case SimilarityMethod.HammingDistence:
-                    similarity = new HammingDistence(m_setting.ThresholdList[0], m_setting.ThresholdList[1]);
+                    similarity = new HammingDistence(m_setting.ThresholdList);
                     break;
                 case SimilarityMethod.EucideanDistence:
                     similarity = new EuclideanDistence(m_setting.ThresholdList[0]);
                     break;
                 case SimilarityMethod.PearsonDistence:
-                    similarity = new PearsonDistence(m_setting.ThresholdList[0]);
+                    similarity = new PearsonDistence(m_setting.ThresholdList);
                     break;
 
                 default:

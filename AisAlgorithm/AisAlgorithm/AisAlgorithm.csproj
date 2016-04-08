@@ -68,6 +68,7 @@
     <Compile Include="Model\MaxMinValue.cs" />
     <Compile Include="Model\EnergyColumn.cs" />
     <Compile Include="Model\ElectricityComsumption.cs" />
+    <Compile Include="Parameter.cs" />
     <Compile Include="Windows\Setting.xaml.cs">
       <DependentUpon>Setting.xaml</DependentUpon>
     </Compile>
@@ -111,6 +112,7 @@
     <Content Include="Data.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="DataAll.csv" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

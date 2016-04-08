@@ -94,14 +94,14 @@ namespace AisAlgorithm.Model
                 Dictionary<string, double> tempValue = new Dictionary<string, double>();
                 foreach (DataColumn col in dr.Table.Columns)
                 {
-                    if (!col.ColumnName.Equals("GroupId"))
+                    if (!col.ColumnName.Equals("GroupId") && !col.ColumnName.Equals("Date"))
                     {
                         if (!double.TryParse(dr[col.ColumnName].ToString(), out value))
                         {
                             checkValue = false;
                             break;
                         }
-                        if (!col.ColumnName.Equals("RowIndex"))
+                        if (!col.ColumnName.Equals("RowIndex") )
                         {
                             tempValue[col.ColumnName] = value;
                         }
@@ -120,7 +120,7 @@ namespace AisAlgorithm.Model
                             ColCaculate.Add(colName, 0);
                             if (Fuzzy)
                             {
-                                FuzzyValue.Add(colName, CommonUtil.GetMembershipFunction(tempValue[colName], MainWindow.FuzzyCol[colName]).RegionName);
+                                FuzzyValue.Add(colName, CommonUtil.GetMembershipFunction(tempValue[colName], Parameter.GetInstance().FuzzyCol[colName]).RegionName);
                             }
                             if (m_center == GroupCenter.First)
                             {

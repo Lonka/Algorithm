@@ -85,7 +85,7 @@
         <TextBlock HorizontalAlignment="Left" Margin="226,98,0,0" TextWrapping="Wrap" Text="使用的欄位" VerticalAlignment="Top"/>
         <CheckBox x:Name="cb_normalization" Content="最大最小值正規化"   HorizontalAlignment="Left" Margin="226,52,0,0" VerticalAlignment="Top"/>
         <CheckBox x:Name="cb_fuzzy" Content="模糊分類" HorizontalAlignment="Left" Margin="226,73,0,0" VerticalAlignment="Top" Checked="cb_fuzzy_Checked" Unchecked="cb_fuzzy_Checked"/>
-        <TextBox x:Name="txt_PredictionCount" HorizontalAlignment="Left" Height="23" Margin="145,17,0,0" TextWrapping="Wrap" Text="20" VerticalAlignment="Top" Width="39"/>
+        <TextBox x:Name="txt_PredictionCount" HorizontalAlignment="Left" Height="23" Margin="145,17,0,0" TextWrapping="Wrap" Text="300" VerticalAlignment="Top" Width="39"/>
         <TextBlock HorizontalAlignment="Left" Margin="87,18,0,0" TextWrapping="Wrap" Text="預測個數" VerticalAlignment="Top"/>
 
 

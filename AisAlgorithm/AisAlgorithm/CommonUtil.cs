@@ -78,23 +78,15 @@ namespace AisAlgorithm
         public static DataTable Normalization(DataTable dt, out Dictionary<string, MaxMinValue> norCol)
         {
 
-            norCol = new Dictionary<string, MaxMinValue>();
             DataTable result = dt.Clone();
-            foreach (DataColumn column in dt.Columns)
-            {
-                if (column.ColumnName.Equals("RowIndex") || column.ColumnName.Equals("Season"))
-                {
-                    continue;
-                }
-                List<double> colList = dt.AsEnumerable().Select(item => double.Parse(item[column.ColumnName].ToString())).Distinct().ToList();
-                norCol.Add(column.ColumnName, new MaxMinValue() { Max = colList.Max(), Min = colList.Min() });
-            }
+            SetMaxMin(dt,out norCol);
             double value = double.MinValue;
             foreach (DataRow dr in dt.Rows)
             {
                 DataRow nDr = result.NewRow();
                 nDr["RowIndex"] = dr["RowIndex"];
                 nDr["Season"] = dr["Season"];
+                nDr["Date"] = dr["Date"];
                 foreach (KeyValuePair<string, MaxMinValue> item in norCol)
                 {
                     if (double.TryParse(dr[item.Key].ToString(), out value))
@@ -106,6 +98,20 @@ namespace AisAlgorithm
             }
             return result;
 
+        }
+
+        public static void SetMaxMin(DataTable dt,out  Dictionary<string, MaxMinValue> norCol)
+        {
+            norCol = new Dictionary<string, MaxMinValue>();
+            foreach (DataColumn column in dt.Columns)
+            {
+                if (column.ColumnName.Equals("RowIndex") || column.ColumnName.Equals("Season") || column.ColumnName.Equals("Date"))
+                {
+                    continue;
+                }
+                List<double> colList = dt.AsEnumerable().Select(item => double.Parse(item[column.ColumnName].ToString())).Distinct().ToList();
+                norCol.Add(column.ColumnName, new MaxMinValue() { Max = colList.Max(), Min = colList.Min() });
+            }
         }
 
         public static DataTable BreakData(DataTable dt)

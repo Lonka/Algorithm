@@ -13,7 +13,17 @@ namespace AisAlgorithm
         {
             similarityThreshold = _similarityThreshold;
         }
+
+        public PearsonDistence(List<double> _params)
+        {
+            similarityThreshold = _params[0];
+            if(_params.Count >= 1 )
+            {
+                compareTarget = (_params[1].Equals(0) ? false : true);
+            }
+        }
         private double similarityThreshold = 0.9;
+        private bool compareTarget = App.CompareTarget;
 
         public bool Caculate(System.Data.DataRow targetDr, System.Data.DataRow dr, out double similarityValue)
         {
@@ -22,14 +32,14 @@ namespace AisAlgorithm
             similarityValue = double.MinValue;
             foreach (DataColumn dc in targetDr.Table.Columns)
             {
-                if (dc.ColumnName != "GroupId" && dc.ColumnName != "RowIndex"
+                if (dc.ColumnName != "GroupId" && dc.ColumnName != "RowIndex" && dc.ColumnName != "Date"
                     && double.TryParse(targetDr[dc.ColumnName].ToString(), out orginalValue))
                 {
                     colCaculate[dc.ColumnName] = orginalValue;
                 }
             }
 
-            return colCaculate.Count == dr.Table.Columns.Count-1 && Caculate(colCaculate, dr, out similarityValue);
+            return colCaculate.Count == dr.Table.Columns.Count-2 && Caculate(colCaculate, dr, out similarityValue);
         }
         public bool Caculate(Dictionary<string, double> colCaculate, System.Data.DataRow dr, out double similarityValue)
         {
@@ -49,7 +59,7 @@ namespace AisAlgorithm
             int avgCount = 0;
             foreach (KeyValuePair<string, double> col in groupInfo.ColCaculate)
             {
-                if (!App.CompareTarget && col.Key == "Target_Kwh")
+                if (!compareTarget && col.Key == "Target_Kwh")
                 {
                     continue;
                 }

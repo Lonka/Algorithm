@@ -23,14 +23,14 @@ namespace AisAlgorithm
             similarityValue = double.MinValue;
             foreach (DataColumn dc in targetDr.Table.Columns)
             {
-                if ((dc.ColumnName != "GroupId" && dc.ColumnName != "RowIndex")
+                if ((dc.ColumnName != "GroupId" && dc.ColumnName != "RowIndex" && dc.ColumnName != "Date")
                     && double.TryParse(targetDr[dc.ColumnName].ToString(), out orginalValue))
                 {
                     colCaculate[dc.ColumnName] = orginalValue;
                 }
             }
 
-            return colCaculate.Count == dr.Table.Columns.Count -1 && Caculate(colCaculate, dr, out similarityValue);
+            return colCaculate.Count == dr.Table.Columns.Count -2 && Caculate(colCaculate, dr, out similarityValue);
         }
         public bool Caculate(Dictionary<string, double> colCaculate, System.Data.DataRow dr, out double similarityValue)
         {

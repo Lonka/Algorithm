@@ -76,13 +76,13 @@ namespace AisAlgorithm
             //        {
             //            ffc = GroupCenter.Avg;
             //        }
-            //for (int i = 3; i <= 10; i++)
-            //{
-            //    for (int j = i + 2; j <= i + 6; j++)
-            //    {
-            //        Execute(GroupCenter.First, GroupCenter.Avg, i, j);
-            //    }
-            //}
+            for (int i = 1; i <= 5; i++)
+            {
+                for (int j = i + 1; j <= i + 4; j++)
+                {
+                    Execute(GroupCenter.First, GroupCenter.Avg, i, j);
+                }
+            }
             //    }
             //}
 
@@ -90,7 +90,8 @@ namespace AisAlgorithm
 
             //Execute(GroupCenter.First, GroupCenter.Avg, 0.03, 0.03);
 
-            Execute(GroupCenter.First, GroupCenter.Avg, 2, 3);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 2, 3);
+            //Execute(GroupCenter.First, GroupCenter.Avg, 1, 2);
             //Execute(GroupCenter.First, GroupCenter.Avg, 3, 7);
             // Execute(GroupCenter.First, GroupCenter.Avg, 3, 8);
             //Execute(GroupCenter.First, GroupCenter.Avg, 4, 6);
@@ -219,7 +220,7 @@ namespace AisAlgorithm
 
                 }
                 //預測
-                Forecasting(clusterCenter, forecastCenter, clusterIndex, forecastIndex, testData, groupData);
+                Forecasting(clusterCenter, forecastCenter, clusterIndex, forecastIndex, trainData, testData, groupData);
             }
         }
 
@@ -345,7 +346,7 @@ namespace AisAlgorithm
 
         #region Forecast
 
-        private void Forecasting(GroupCenter clusterCenter, GroupCenter forecastCenter, double clusterIndex, double forecastIndex, DataTable testData, Dictionary<int, GroupInfo> groupData)
+        private void Forecasting(GroupCenter clusterCenter, GroupCenter forecastCenter, double clusterIndex, double forecastIndex, DataTable trainData, DataTable testData, Dictionary<int, GroupInfo> groupData)
         {
             PredictionCount = int.Parse(txt_PredictionCount.Text);
 
@@ -364,11 +365,6 @@ namespace AisAlgorithm
 
             PearsonDistence predictionPearsonDis = new PearsonDistence(forecastParams);
 
-            forecastParams = new List<double>();
-            forecastParams.Add(99);
-            forecastParams.Add(clusterIndex);
-            forecastParams.Add(0);
-            HammingDistence predictionHammingDis = new HammingDistence(forecastParams);
 
             //EuclideanDistence predictionDis = new EuclideanDistence(0);
 
@@ -403,201 +399,204 @@ namespace AisAlgorithm
                 count++;
                 if (double.TryParse(dr["Rel_kWh"].ToString(), out electricityValue))
                 {
-
                     //找出與該點相似的群
-                    Dictionary<int, GroupInfo> forecastingGroupData = clustering.FilterGroup(dr, groupData);
-                    //double tempForecastIndex = forecastIndex;
-                    //while (forecastingGroupData.Count == 0)//&& tempForecastIndex <= forecastIndex + 1)
-                    //{
-                    //    tempForecastIndex++;
-                    //    ClusteringSetting tempForecastSetting;
-                    //    GetForecastClusteringSetting(forecastCenter, tempForecastIndex, out tempForecastSetting);
-                    //    Clustering TempClustering = new Clustering(tempForecastSetting);
-                    //    forecastingGroupData = TempClustering.FilterGroup(dr, groupData);
-                    //}
+                    //Dictionary<int, GroupInfo> forecastingGroupData = clustering.FilterGroup(dr, groupData);
 
-                    //計算出該點與每個群的相似度
-                    //todo weight應該可以再調整
-                    Dictionary<int, double> weight = CaculateWeight(forecastingGroupData);
-
-                    //每一群該點與每個點相似度
-                    Dictionary<int, List<double>> similarityGroupData = new Dictionary<int, List<double>>();
-
-
-                    Dictionary<int, List<double>> similarityGroupDataElec = new Dictionary<int, List<double>>();
-                    double forecastValue = forecastingGroupData.Count == 0 ? -66666 : electricityValue;
-                    //double forecastValue = 0;
-
-                    double forecastValueTemp = 0;
-                    List<double> similarityData = new List<double>();
-                    foreach (KeyValuePair<int, GroupInfo> item in forecastingGroupData)
+                    double tempForecastIndex = 0;
+                    bool hasData = false;
+                    double forecastValue = 0;
+                    List<string> groupId = new List<string>();
+                    while (!hasData && tempForecastIndex + forecastIndex <= forecastIndex + 2)//&& tempForecastIndex <= forecastIndex + 1)
                     {
 
-                        //var dateColl =item.Value.Rows.Where(arg =>
+                        ClusteringSetting tempForecastSetting;
+                        GetForecastClusteringSetting(forecastCenter, tempForecastIndex + forecastIndex, out tempForecastSetting);
+                        Clustering TempClustering = new Clustering(tempForecastSetting);
+                        Dictionary<int, GroupInfo> forecastingGroupData = TempClustering.FilterGroup(dr, groupData);
+                        tempForecastIndex++;
+
+                        for (int xx = 1; xx <= tempForecastIndex; xx++)
+                        {
+                            forecastParams = new List<double>();
+                            forecastParams.Add(99);
+                            forecastParams.Add(xx);
+                            forecastParams.Add(0);
+                            HammingDistence predictionHammingDis = new HammingDistence(forecastParams);
+
+
+
+                            //計算出該點與每個群的相似度
+                            //todo weight應該可以再調整
+                            Dictionary<int, double> weight = CaculateWeight(forecastingGroupData);
+
+                            //每一群該點與每個點相似度
+                            Dictionary<int, List<double>> similarityGroupData = new Dictionary<int, List<double>>();
+
+
+                            Dictionary<int, List<double>> similarityGroupDataElec = new Dictionary<int, List<double>>();
+                            forecastValue = forecastingGroupData.Count == 0 ? -66666 : electricityValue;
+                            //double forecastValue = 0;
+
+                            List<double> similarityData = new List<double>();
+                            Dictionary<int, double> adjustmentTemp = new Dictionary<int, double>();
+                            foreach (KeyValuePair<int, GroupInfo> item in forecastingGroupData)
+                            {
+                                if (groupId.Contains(item.Key.ToString() + "_" + xx.ToString()))
+                                {
+                                    continue;
+                                }
+                                else
+                                {
+                                    groupId.Add(item.Key.ToString() + "_" + xx.ToString());
+                                }
+                                //double forecastValueTemp = 0;
+                                //var dateColl =item.Value.Rows.Where(arg =>
+                                //    {
+                                //        return DateTime.Parse(arg["Date"].ToString()).TimeOfDay.TotalMinutes >= targetTime.TotalMinutes - 15 && DateTime.Parse(arg["Date"].ToString()).TimeOfDay.TotalMinutes <= targetTime.TotalMinutes + 15;
+                                //    });
+                                //if (!dateColl.Any())
+                                //{
+                                //    forecastValueTemp = item.Value.ColAvg["Target_Kwh"];
+                                //}
+                                //else
+                                //{
+                                //    forecastValueTemp = dateColl.Average(arg => double.Parse(arg["Target_Kwh"].ToString()));
+                                //}
+#if(DEBUG)
+                                DataRow groupAvg = showData.NewRow();
+                                foreach (DataColumn col in testData.Columns)
+                                {
+                                    if (item.Value.ColAvg.ContainsKey(col.ColumnName))
+                                    {
+                                        groupAvg[col.ColumnName] = item.Value.ColAvg[col.ColumnName];
+                                    }
+                                }
+                                groupAvg["RowIndex"] = "GroupID:" + item.Key;
+                                groupAvg["Date"] = xx;
+                                showData.Rows.Add(groupAvg);
+#endif
+
+                                double forecastValueTemp = 0;
+                                //該點於該群的每一點相似度
+                                foreach (DataRow gDr in item.Value.Rows)
+                                {
+                                    TimeSpan currentTime = DateTime.Parse(gDr["Date"].ToString()).TimeOfDay;
+                                    //bool isCurrent = (currentTime.TotalMinutes >= targetTime.TotalMinutes - 15 && currentTime.TotalMinutes <= targetTime.TotalMinutes + 15);
+                                    if (predictionHammingDis.Caculate(gDr, dr, out similarityValue))
+                                    //if (predictionPearsonDis.Caculate(gDr, dr, out similarityValue))
+                                    {
+                                        //for hamming
+                                        if (similarityValue < 1 && similarityValue > 0)
+                                        {
+                                            similarityValue = 0;
+                                        }
+                                        else if (similarityValue == 1)
+                                        {
+                                            similarityValue = similarityValue * 1;
+                                            hasData = true;
+                                        }
+                                        else if (similarityValue == 0)// && isCurrent)
+                                        {
+                                        }
+
+
+
+                                        if (!similarityGroupData.ContainsKey(item.Key))
+                                        {
+                                            similarityGroupData.Add(item.Key, new List<double>());
+                                        }
+                                        if (!similarityGroupDataElec.ContainsKey(item.Key))
+                                        {
+                                            similarityGroupDataElec.Add(item.Key, new List<double>());
+                                        }
+
+                                        if (similarityValue > 0)//&& isCurrent)
+                                        {
+                                            double elec;
+                                            if (double.TryParse(gDr["Target_Kwh"].ToString(), out elec))
+                                            {
+                                                similarityData.Add(elec);
+
+                                                similarityGroupData[item.Key].Add(similarityValue);
+
+                                                similarityGroupDataElec[item.Key].Add(elec);
+                                            }
+                                        }
+
+#if(DEBUG)
+                                        //印內容
+                                        //if (similarityValue > 0)//&& isCurrent)
+                                        //{
+                                        //    DataRow showRow = showData.NewRow();
+                                        //    foreach (DataColumn col in testData.Columns)
+                                        //    {
+                                        //        showRow[col.ColumnName] = gDr[col.ColumnName];
+                                        //    }
+                                        //    showRow["Similarity"] = similarityValue;
+                                        //    showData.Rows.Add(showRow);
+                                        //}
+#endif
+
+                                    }
+                                }
+
+
+
+
+                                double sumSimilarity = similarityGroupData[item.Key].Sum();
+                                sumSimilarity = (sumSimilarity == 0 ? 1 : sumSimilarity);
+
+                                double similarityTemp = 0;
+                                //每點
+                                for (int i = 0; i < similarityGroupData[item.Key].Count; i++)
+                                {
+                                    similarityTemp += similarityGroupData[item.Key][i] * (GetCompareValue(similarityGroupDataElec[item.Key][i], electricityValue));
+                                }
+                                forecastValueTemp += weight[item.Key] * (similarityTemp / sumSimilarity);
+                                forecastValue += forecastValueTemp;
+                                //if (similarityTemp > 0)
+                                //{
+                                //    adjustmentTemp.Add(item.Key, similarityTemp);
+                                //}
+
+
+                                //forecastValueTemp += weight[item.Key] * (similarityTemp / sumSimilarity);
+
+                                //forecastValue += weight[item.Key] * (similarityTemp / sumSimilarity);
+
+
+
+
+                            }
+                            if (hasData)
+                            {
+                                //foreach (KeyValuePair<int, double> adjustment in adjustmentTemp)
+                                //{
+                                //    forecastValue += (adjustment.Value / adjustmentTemp.Count);
+                                //}
+
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!hasData)
+                    {
+                        //var dateColl = trainData.AsEnumerable().Where(arg =>
                         //    {
                         //        return DateTime.Parse(arg["Date"].ToString()).TimeOfDay.TotalMinutes >= targetTime.TotalMinutes - 15 && DateTime.Parse(arg["Date"].ToString()).TimeOfDay.TotalMinutes <= targetTime.TotalMinutes + 15;
                         //    });
-                        //if (!dateColl.Any())
+                        //if (dateColl.Any())
                         //{
-                        //    forecastValueTemp = item.Value.ColAvg["Target_Kwh"];
+                        //    forecastValue = dateColl.Average(item => double.Parse(item["Target_Kwh"].ToString()));
                         //}
                         //else
                         //{
-                        //    forecastValueTemp = dateColl.Average(arg => double.Parse(arg["Target_Kwh"].ToString()));
+                        forecastValue = -66666;
                         //}
-#if(DEBUG)
-                        DataRow groupAvg = showData.NewRow();
-                        foreach (DataColumn col in testData.Columns)
-                        {
-                            if (item.Value.ColAvg.ContainsKey(col.ColumnName))
-                            {
-                                groupAvg[col.ColumnName] = item.Value.ColAvg[col.ColumnName];
-                            }
-                        }
-                        groupAvg["RowIndex"] = "GroupID:" + item.Key;
-                        showData.Rows.Add(groupAvg);
-                        //DataRow groupCalculate = showData.NewRow();
-                        //foreach (DataColumn col in testData.Columns)
-                        //{
-                        //    if (item.Value.ColCaculate.ContainsKey(col.ColumnName))
-                        //    {
-                        //        groupCalculate[col.ColumnName] = item.Value.ColCaculate[col.ColumnName];
-                        //    }
-                        //}
-                        //groupCalculate["RowIndex"] = "GroupID:" + item.Key;
-                        //showData.Rows.Add(groupCalculate);
-#endif
 
-
-                        //該點於該群的每一點相似度
-                        foreach (DataRow gDr in item.Value.Rows)
-                        {
-                            TimeSpan currentTime = DateTime.Parse(gDr["Date"].ToString()).TimeOfDay;
-                            //bool isCurrent = (currentTime.TotalMinutes >= targetTime.TotalMinutes - 15 && currentTime.TotalMinutes <= targetTime.TotalMinutes + 15);
-                            if (predictionHammingDis.Caculate(gDr, dr, out similarityValue))
-                            //if (predictionPearsonDis.Caculate(gDr, dr, out similarityValue))
-                            {
-                                //for pearson
-                                //if(similarityValue < 0.9995)
-                                //{
-                                //    similarityValue = 0;
-                                //}
-
-                                //for hamming
-                                if (similarityValue < 1 && similarityValue > 0)
-                                {
-                                    //if (!isCurrent)
-                                    //{
-                                    similarityValue = 0;
-                                    //}
-                                }
-                                else if (similarityValue == 1)
-                                {
-                                    //if (isCurrent)
-                                    //{
-                                    //    similarityValue = similarityValue * 1;
-                                    //}
-                                    //else
-                                    //{
-                                    similarityValue = similarityValue * 1;
-                                    //}
-                                }
-                                else if (similarityValue == 0)// && isCurrent)
-                                {
-                                    //similarityValue = 1;
-                                }
-
-
-
-                                if (!similarityGroupData.ContainsKey(item.Key))
-                                {
-                                    similarityGroupData.Add(item.Key, new List<double>());
-                                }
-                                if (!similarityGroupDataElec.ContainsKey(item.Key))
-                                {
-                                    similarityGroupDataElec.Add(item.Key, new List<double>());
-                                }
-
-                                //similarityGroupData[item.Key].Add(similarityValue);
-                                if (similarityValue > 0 )//&& isCurrent)
-                                {
-                                    double elec;
-                                    if (double.TryParse(gDr["Target_Kwh"].ToString(), out elec))
-                                    {
-                                        similarityData.Add(elec);
-
-                                        similarityGroupData[item.Key].Add(similarityValue);
-
-                                        similarityGroupDataElec[item.Key].Add(elec);
-                                    }
-                                }
-
-#if(DEBUG)
-                                if (similarityValue > 0 )//&& isCurrent)
-                                {
-                                    //印內容
-                                    DataRow showRow = showData.NewRow();
-                                    foreach (DataColumn col in testData.Columns)
-                                    {
-                                        showRow[col.ColumnName] = gDr[col.ColumnName];
-                                    }
-                                    showRow["Similarity"] = similarityValue;
-                                    showData.Rows.Add(showRow);
-                                }
-#endif
-
-                            }
-                        }
-
-                        //var tt = similarityGroupData[item.Key].Aggregate(1.0, (x, y) => x * y);
-                        //double minSimilarity = similarityGroupData[item.Key].Min();
-                        //double maxSimilarity = similarityGroupData[item.Key].Max();
-                        double sumSimilarity = similarityGroupData[item.Key].Sum();
-                        sumSimilarity = (sumSimilarity == 0 ? 1 : sumSimilarity);
-                        //for (int i = 0; i < similarityGroupData[item.Key].Count; i++)
-                        //{
-                        //    //similarityGroupData[item.Key][i] = (similarityGroupData[item.Key][i] - minSimilarity) / (maxSimilarity - minSimilarity);
-                        //    similarityGroupData[item.Key][i] = (similarityGroupData[item.Key][i]) / (sumSimilarity);
-                        //}
-                        //sumSimilarity = similarityGroupData[item.Key].Sum();
-                        //sumSimilarity = (sumSimilarity == 0 ? 1 : sumSimilarity);
-
-#if(DEBUG)
-                        //印內容 用不到了
-                        //int sCount = similarityGroupData[item.Key].Count - 1;
-                        //for (int i = showData.Rows.Count - 1; i > showData.Rows.Count - 1 - similarityGroupData[item.Key].Count; i--)
-                        //{
-                        //    showData.Rows[i]["SimilarityNor"] = similarityGroupData[item.Key][sCount];
-                        //    sCount--;
-                        //}
-#endif
-                        double similarityTemp = 0;
-                        for (int i = 0; i < similarityGroupData[item.Key].Count; i++)
-                        {
-                            similarityTemp += similarityGroupData[item.Key][i] * (similarityGroupDataElec[item.Key][i] - electricityValue);
-                        }
-                        ///forecastValueTemp = forecastValueTemp * weight[item.Key];
-                        ///
-                        forecastValueTemp += weight[item.Key] * (similarityTemp / sumSimilarity);
-
-                        forecastValue += forecastValueTemp;
-
-
-                        //forecastValue += weight[item.Key] * (item.Value.ColAvg["Target_Kwh"] + ((similarityGroupDataElec[item.Key].Sum()) / similarityGroupData[item.Key].Sum()));
-                        //forecastValue += weight[item.Key] * (similarityTemp);
                     }
 
-
-
-                    //if (similarityData.Count == 0)
-                    //{
-                    //    forecastValue = -66666;
-                    //}
-                    //else
-                    //{
-                    //    forecastValue = similarityData.Average() + forecastValueTemp;
-
-                    //}
 #if(DEBUG)
                     //寫入該筆的預測結果
                     var sourceRow = showData.AsEnumerable().Where(i => i["RowIndex"].ToString().Equals(dr["RowIndex"].ToString())).FirstOrDefault();
@@ -649,6 +648,19 @@ namespace AisAlgorithm
 #endif
 
 
+        }
+
+        private double GetCompareValue(double groupPointElecValue, double targetElecValue)
+        {
+            double temp = groupPointElecValue - targetElecValue;
+            if (Math.Abs(temp) > 5)
+            {
+                return 0;
+            }
+            else
+            {
+                return temp;
+            }
         }
 
 
